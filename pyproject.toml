@@ -1,0 +1,21 @@
+[build-system]
+requires = [
+    "meson-python>=0.15.0", # Use a recent version
+    "meson>=1.6.0",        # Specify your Meson version requirement
+    "pybind11>=2.10"       # pybind11 headers needed at build time
+]
+build-backend = "mesonpy"
+
+[project]
+name = "fourdst"  # Choose your Python package name
+version = "0.5.0" # Your project's version
+description = "Python interface to the utility fourdst modules from the 4D-STAR project"
+readme = "readme.md"
+license = { file = "LICENSE.txt" } # Reference your license file [cite: 2]
+
+authors = [
+    {name = "Emily M. Boudreaux", email = "emily@boudreauxmail.com"},
+]
+maintainers = [
+    {name = "Emily M. Boudreaux", email = "emily@boudreauxmail.com"}
+]

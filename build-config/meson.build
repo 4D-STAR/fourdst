@@ -1,0 +1,5 @@
+subdir('libcomposition')
+subdir('libconfig')
+subdir('libconstants')
+subdir('liblogging')
+subdir('pybind')
