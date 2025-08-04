@@ -8,7 +8,7 @@ build-backend = "mesonpy"
 
 [project]
 name = "fourdst"  # Choose your Python package name
-version = "0.5.0" # Your project's version
+version = "0.6.0" # Your project's version
 description = "Python interface to the utility fourdst modules from the 4D-STAR project"
 readme = "readme.md"
 license = { file = "LICENSE.txt" } # Reference your license file [cite: 2]
@@ -19,3 +19,13 @@ authors = [
 maintainers = [
     {name = "Emily M. Boudreaux", email = "emily@boudreauxmail.com"}
 ]
+
+dependencies = [
+    "typer[all]",
+    "libclang",
+    "questionary",
+]
+
+[project.scripts]
+fourdst-cli = "fourdst.cli.main:app"
+

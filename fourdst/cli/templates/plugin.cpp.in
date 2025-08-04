@@ -1,0 +1,15 @@
+#include "{interface_header_path}"
+#include <fourdst/plugin/plugin.h>
+#include <iostream>
+
+class {class_name} final : public {interface} {{
+public:
+    ~{class_name}() override {{
+        // Implement any custom destruction logic here
+    }}
+
+    // --- Implemented Abstract Methods ---
+{method_stubs}
+}};
+
+FOURDST_DECLARE_PLUGIN({class_name}, "{project_name}", "0.1.0"); // Version can be static or dynamic

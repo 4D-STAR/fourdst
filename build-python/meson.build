@@ -18,3 +18,22 @@ py_mod = py_installation.extension_module(
     cpp_args : ['-UNDEBUG'],
     install : true,
 )
+
+py_installation.install_sources(
+    meson.project_source_root() + '/fourdst/__init__.py',
+    subdir: 'fourdst',
+)
+py_installation.install_sources(
+    files(
+        meson.project_source_root() + '/fourdst/cli/__init__.py',
+        meson.project_source_root() + '/fourdst/cli/main.py',
+    ),
+    subdir: 'fourdst/cli',
+)
+py_installation.install_sources(
+    files(
+        meson.project_source_root() + '/fourdst/cli/templates/meson.build.in',
+        meson.project_source_root() + '/fourdst/cli/templates/plugin.cpp.in',
+    ),
+    subdir: 'fourdst/cli/templates',
+)
