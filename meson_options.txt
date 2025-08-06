@@ -1,1 +1,2 @@
 option('pkg-config', type: 'boolean', value: false, description: 'generate pkg-config file for all libraries and fourdst (defaults to false to allow easy pip building)')
+option('tests', type: 'boolean', value: false, description: 'compile subproject tests')
