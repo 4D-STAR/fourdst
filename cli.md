@@ -2,9 +2,9 @@
 
 `fourdst`'s goal is to provide a single source for installation and utility for all lib* utilities. This includes python bindings and a command line interface for common tasks. This document covers the design and usage of that command line interface, `fourdst-cli`
 
-At the moment `fourdst-cli` only includes subprograms and commands related to plugin management for the 4D-STAR/libplugin library. [libplugin](https://github.com/4D-STAR/libplugin) is a small plugin library written for use by the 4D-STAR collaboration. Its goal is to allow researchers to easily share plugins to extend code in a low friction and reproducable manner.
+At the moment `fourdst-cli` only includes subprograms and commands related to plugin management for the 4D-STAR/libplugin library. [libplugin](https://github.com/4D-STAR/libplugin) is a small plugin library written for use by the 4D-STAR collaboration. Its goal is to allow researchers to easily share plugins to extend code in a low friction and reproducible manner.
 
-> **IMPORTANT:** Plugins, by their nature, allow arbitrary code to run on your system, libplugin does not preform any kind of sandboxing so this has the potential to be *very* unsafe. We have built in a rudimentery signing system to provide at least some security. However, the developers are researchers and not security professionals. As a user, please listen to the warnings you get. Self signed bundles are fine for you to use for yourself; however, be very very weary of unsigned or untrusted bundles when you are not the author. libplugin was developed for scientific use and with a focus on ease of use for scientists (and with the paradigm of collaborates sharing plugin files). This means that the security model does have some implicit level of trust assumed. Use this library at your own risk and **be very careful** about using unknown plugins.
+> **IMPORTANT:** Plugins, by their nature, allow arbitrary code to run on your system, libplugin does not preform any kind of sandboxing so this has the potential to be *very* unsafe. We have built in a rudimentary signing system to provide at least some security. However, the developers are researchers and not security professionals. As a user, please listen to the warnings you get. Self-signed bundles are fine for you to use for yourself; however, be very, very weary of unsigned or untrusted bundles when you are not the author. libplugin was developed for scientific use and with a focus on ease of use for scientists (and with the paradigm of collaborates sharing plugin files). This means that the security model does have some implicit level of trust assumed. Use this library at your own risk and **be very careful** about using unknown plugins.
 
 ## Installation
 `fourdst-cli` can be installed from pip
@@ -27,14 +27,14 @@ note that in order to install from source you will need `meson`, `ninja`, and `c
 pip install meson ninja cmake
 ```
 
-Installing `fourdst` will make the `fourdst-cli` command line program avalible. Note you may need to restart or resource your terminal for changes to take effect.
+Installing `fourdst` will make the `fourdst-cli` command line program available. Note you may need to restart or resource your terminal for changes to take effect.
 
 
 ## Core Concepts
 There are few concepts `fourdst-cli` defined, these are outlined below.
 
 ### Plugins
-A **Plugin** is a self-contained C++ project, built as a shared library (`.so`, `.dylib`), that implements a specific interface defined in a C++ header file. The `fourdst-cli` helps scaffold, build, and manage these projects. Generally, plugin concumers (programs that can make use of user plugins) must provide interface header files which can then be targeted by plugin authors.
+A **Plugin** is a self-contained C++ project, built as a shared library (`.so`, `.dylib`), that implements a specific interface defined in a C++ header file. The `fourdst-cli` helps scaffold, build, and manage these projects. Generally, plugin consumers (programs that can make use of user plugins) must provide interface header files which can then be targeted by plugin authors.
 
 ### Bundles (`.fbundle`)
 A **Bundle** is a single `.fbundle` file (which is just a standard `.zip` archive using a different extension) that contains everything needed to distribute one or more plugins. A key design principle is that a bundle can contain both pre-compiled binaries for various platforms *and* the full source code. This hybrid approach provides the best of both worlds:
@@ -226,7 +226,7 @@ Manages the list of remote key repositories.
 
 > The usage of `keys remote` is intended to allow for remote source of trust to be established. There are risks associated with this as it shifts the expectation of trust onto the repository maintainers. Users should use remote public key stores at their own risk. 
 
-> **Note:** We indend to establish a public key store on GitHub where plugin authors, officially vetted by the 4D-STAR collaboration, can register their public keys. <span style="color:red">**Any other public key stores for libplugin are unofficial and should be treated with extreme caution**</span>.
+> **Note:** We intend to establish a public key store on GitHub where plugin authors, officially vetted by the 4D-STAR collaboration, can register their public keys. <span style="color:red">**Any other public key stores for libplugin are unofficial and should be treated with extreme caution**</span>.
 
 ### `cache`
 
@@ -280,7 +280,7 @@ fourdst-cli keys generate --name my_author_key
 ```bash
 fourdst-cli keys add my_author_key.pub
 ```
-This will install the key you generated to your fourdst config (`$HOME/.config/fourdst/keys`). This lets you easily use self signed bundles. Note that you should **not** simply self sign bundles from the internet.
+This will install the key you generated to your fourdst config (`$HOME/.config/fourdst/keys`). This lets you easily use self-signed bundles. Note that you should **not** simply self sign bundles from the internet.
 
 #### 8. Sign the Bundle:
 
@@ -289,16 +289,16 @@ fourdst-cli bundle sign my_plugin_v1.fbundle --key my_author_key
 ```
 
 #### 8. Distribute: 
-As said at the top of this document the intended usage case of libplugin is something like "I am a researcher and I have this set of plugins I wrote for this code, I want my student, or collaborator, to be able to run the same code with the same set of plugins". Because of this we anticipate that usage will look like individual researchers building plugins and bundles and sharing them direclty with others (i.e. not through some central ditribution server).
+As said at the top of this document the intended usage case of libplugin is something like "I am a researcher and I have this set of plugins I wrote for this code, I want my student, or collaborator, to be able to run the same code with the same set of plugins". Because of this we anticipate that usage will look like individual researchers building plugins and bundles and sharing them directly with others (i.e. not through some central distribution server).
 
 Plugin authors can register their public signing keys with us to establish a trusted set of authors (Note: that each author must be validated manually by current authors). This lets plugin consumers compare signed bundles to trusted sources.
 
-> We want to remind readers of the note at the top. The authors of this library are researchers and not security professionals. libplugin has been developed with the goal of making plugins easy for scientiests and with a limited amount of security tooling built in; however, plugins should be treated as untrusted code and should only be used if you are **very** confident that you trust the author and that the plugin you have is actually from that author (and has not been modified or had malicious code injected into it).
+> We want to remind readers of the note at the top. The authors of this library are researchers and not security professionals. libplugin has been developed with the goal of making plugins easy for scientists and with a limited amount of security tooling built in; however, plugins should be treated as untrusted code and should only be used if you are **very** confident that you trust the author and that the plugin you have is actually from that author (and has not been modified or had malicious code injected into it).
 
 ### Workflow 2: Plugin Consumer (Verifying and Using a Bundle)
 
 #### 1. Receive Files
-You get my_plugin_v1.fbundle from an author. Either the author is a trusted author (at which point you can call fourdst-cli keys sync to syncronize trusted keys with the 4D-STAR github keychain) or they are not. If they are not they can choose to share the public key of the key pair used to sign the bundle. 
+You get my_plugin_v1.fbundle from an author. Either the author is a trusted author (at which point you can call fourdst-cli keys sync to synchronize trusted keys with the 4D-STAR GitHub keychain) or they are not. If they are not they can choose to share the public key of the key pair used to sign the bundle. 
 
 > Note: You must be **very** sure you trust the plugin author if you accept their public key. Arbitrary code signed with the private key of this pair will be able to run on your compute. **Do not accept random public keys from plugin authors on the internet**. This is intended to be used by trusted collaborators, advisors, or other personal / professional connections. 
 
@@ -333,9 +333,9 @@ fourdst-cli bundle fill my_plugin_v1.fbundle
 - The CLI will prompt you to build for your native platform. After it finishes, running bundle inspect again will show a new, compatible binary. The bundle is now ready to use.
 
 #### 4b. (Optional) Sign the Bundle:
-If you are in Scenario C, and **if you trust the author and are confident that the author you think sent you the plugin *actully* sent you the plugin** you may choose to self sign the plugin.
+If you are in Scenario C, and **if you trust the author and are confident that the author you think sent you the plugin *actually* sent you the plugin** you may choose to self sign the plugin.
 
-Note that this increases your risk of running malicious code, you are effectivley saying "I trust this code regardles of the fact that no chain of trust can be established". If you accept that risk you can choose to sign the code yourself. Follow the instructions in the above workflow to do this.
+Note that this increases your risk of running malicious code, you are effectively saying "I trust this code regardless of the fact that no chain of trust can be established". If you accept that risk you can choose to sign the code yourself. Follow the instructions in the above workflow to do this.
 
 
 #### 5. Use the bundle

@@ -74,6 +74,7 @@ subprojects/libconstants/
 subprojects/liblogging/
 subprojects/eigen-*/
 !subprojects/pybind11.wrap
+subprojects/libplugin/
 
 *.csv
 *.dot

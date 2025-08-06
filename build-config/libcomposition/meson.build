@@ -6,3 +6,5 @@ composition_dep = [
     comp_dep,
     spw_dep,
 ]
+
+alias_target('build-libcomposition', libcomposition)
