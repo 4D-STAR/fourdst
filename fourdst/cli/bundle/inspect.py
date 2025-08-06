@@ -18,7 +18,7 @@ except ImportError:
     sys.exit(1)
 
 from fourdst.cli.common.config import LOCAL_TRUST_STORE_PATH
-from fourdst.cli.common.utils import calculate_sha256, get_platform_identifier
+from fourdst.cli.common.utils import get_platform_identifier, calculate_sha256, is_abi_compatible
 
 bundle_app = typer.Typer()
 
@@ -149,7 +149,7 @@ def bundle_inspect(bundle_path: Path = typer.Argument(..., help="The .fbundle fi
                 for b in binaries:
                     plat = b.get('platform', {})
                     is_compatible = (plat.get('triplet') == host_platform['triplet'] and 
-                                     plat.get('abi_signature') == host_platform['abi_signature'])
+                                     is_abi_compatible(host_platform['abi_signature'], plat.get('abi_signature', '')))
                     
                     color = typer.colors.GREEN if is_compatible else None
                     if is_compatible:

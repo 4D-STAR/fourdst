@@ -164,7 +164,7 @@ def get_available_build_targets() -> list:
             for name, image in DOCKER_BUILD_IMAGES.items():
                 arch = name.split(' ')[0]
                 targets.append({
-                    "triplet": f"linux-{arch}",
+                    "triplet": f"{arch}-linux",
                     "abi_signature": f"docker-{image}",
                     "is_native": False,
                     "cross_file": None,
@@ -325,7 +325,7 @@ def _build_plugin_in_docker(sdist_path: Path, build_dir: Path, target: dict, plu
     abi_string = f"{compiler}-{stdlib}-{stdlib_version}-{abi}"
     
     final_target = {
-        "triplet": f"{abi_details.get('os', 'linux')}-{arch}",
+        "triplet": f"{arch}-{abi_details.get('os', 'linux')}",
         "abi_signature": abi_string,
         "is_native": False,
         "cross_file": None,
@@ -344,6 +344,45 @@ def _build_plugin_in_docker(sdist_path: Path, build_dir: Path, target: dict, plu
     
     return local_lib_path, final_target
 
+
+def is_abi_compatible(host_abi: str, binary_abi: str) -> bool:
+    """
+    Checks if a binary's ABI is compatible with the host's ABI.
+
+    Compatibility is defined as:
+    1. Same compiler, stdlib, and ABI name.
+    2. Host's stdlib version is >= binary's stdlib version.
+    """
+    try:
+        host_parts = host_abi.split('-')
+        bin_parts = binary_abi.split('-')
+
+        if len(host_parts) != 4 or len(bin_parts) != 4:
+            # Fallback to exact match for non-standard ABI strings
+            return host_abi == binary_abi
+
+        host_compiler, host_stdlib, host_version, host_abi_name = host_parts
+        bin_compiler, bin_stdlib, bin_version, bin_abi_name = bin_parts
+
+        # 1. Check for exact match on compiler, stdlib, and abi name
+        if not (host_compiler == bin_compiler and host_stdlib == bin_stdlib and host_abi_name == bin_abi_name):
+            return False
+
+        # 2. Compare stdlib versions (e.g., "2.41" vs "2.28")
+        # We can treat them as dot-separated integers for comparison.
+        host_v_parts = list(map(int, host_version.split('.')))
+        bin_v_parts = list(map(int, bin_version.split('.')))
+
+        # Pad shorter version with zeros for safe comparison
+        max_len = max(len(host_v_parts), len(bin_v_parts))
+        host_v_parts.extend([0] * (max_len - len(host_v_parts)))
+        bin_v_parts.extend([0] * (max_len - len(bin_v_parts)))
+
+        return host_v_parts >= bin_v_parts
+
+    except (ValueError, IndexError):
+        # If parsing fails, fall back to a simple string comparison
+        return host_abi == binary_abi
 
 def calculate_sha256(file_path: Path) -> str:
     """Calculates the SHA256 checksum of a file."""
