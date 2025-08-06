@@ -24,6 +24,7 @@ dependencies = [
     "typer[all]",
     "libclang",
     "questionary",
+    "rich",
 ]
 
 [project.scripts]
