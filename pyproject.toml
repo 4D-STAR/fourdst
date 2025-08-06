@@ -25,6 +25,8 @@ dependencies = [
     "libclang",
     "questionary",
     "rich",
+    "pyyaml",
+    "cryptography"
 ]
 
 [project.scripts]
