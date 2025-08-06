@@ -73,6 +73,7 @@ subprojects/libconfig/
 subprojects/libconstants/
 subprojects/liblogging/
 subprojects/eigen-*/
+!subprojects/pybind11.wrap
 
 *.csv
 *.dot
@@ -80,7 +81,6 @@ subprojects/eigen-*/
 qhull.wrap
 quill.wrap
 yaml-cpp.wrap
-pybind11.wrap
 
 .vscode/
 
