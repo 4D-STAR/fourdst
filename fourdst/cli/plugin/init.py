@@ -130,6 +130,8 @@ def parse_cpp_header(header_path: Path):
     if not cindex.Config.loaded:
         try:
             # Attempt to find libclang automatically. This may need to be configured by the user.
+            # On systems like macOS, you might need to point to the specific version, e.g.:
+            # cindex.Config.set_library_path('/opt/homebrew/opt/llvm/lib')
             cindex.Config.set_library_file(cindex.conf.get_filename())
         except cindex.LibclangError as e:
             print(f"Error: libclang library not found. Please ensure it's installed and in your system's path.", file=sys.stderr)
@@ -137,25 +139,53 @@ def parse_cpp_header(header_path: Path):
             raise typer.Exit(code=1)
 
     index = cindex.Index.create()
-    translation_unit = index.parse(str(header_path))
+    # Pass standard C++ arguments to the parser. This improves reliability.
+    args = ['-x', 'c++', '-std=c++17']
+    translation_unit = index.parse(str(header_path), args=args)
+
+    if not translation_unit:
+        print(f"Error: Unable to parse the translation unit {header_path}", file=sys.stderr)
+        raise typer.Exit(code=1)
 
     interfaces = {}
 
-    for node in translation_unit.cursor.get_children():
-        if node.kind == cindex.CursorKind.CLASS_DECL and node.is_pure_virtual():
-            # Found a class with pure virtual methods, likely an interface
-            interface_name = node.spelling
-            print(f"Found interface: {interface_name}")
+    # --- Recursive function to walk the AST ---
+    def walk_ast(node):
+        # We are looking for class definitions, not just declarations.
+        if node.kind == cindex.CursorKind.CLASS_DECL and node.is_definition():
+            # Collect pure virtual methods within this class
+            pv_methods = [m for m in node.get_children()
+                          if m.kind == cindex.CursorKind.CXX_METHOD and m.is_pure_virtual_method()]
+            
+            # If it has pure virtual methods, it's an interface we care about
+            if pv_methods:
+                interface_name = node.spelling
+                methods = []
+                print(f"Found interface: '{interface_name}'")
+                for method in pv_methods:
+                    # Get the string representation of all argument types
+                    args_str = ', '.join([arg.type.spelling for arg in method.get_arguments()])
+                    
+                    # Reconstruct the signature from its parts. This is much more reliable.
+                    sig = f"{method.result_type.spelling} {method.spelling}({args_str})"
+                    
+                    # Append 'const' if the method is a const method
+                    if method.is_const_method():
+                         sig += " const"
 
-            methods = []
-            for method in node.get_children():
-                if method.kind == cindex.CursorKind.CXX_METHOD and method.is_pure_virtual():
-                    # Only consider pure virtual methods
-                    method_signature = f"{method.return_type.spelling} {method.spelling}({', '.join([arg.type.spelling for arg in method.get_arguments()])})"
-                    method_body = "// TODO: Implement this method"
-                    methods.append({"signature": method_signature, "body": method_body})
-                    print(f"  Found pure virtual method: {method_signature}")
+                    methods.append({"signature": sig, "body": "      // TODO: Implement this method"})
+                    print(f"  -> Found pure virtual method: {sig}")
+                
+                interfaces[interface_name] = methods
+                 
+                interfaces[interface_name] = methods
 
-            interfaces[interface_name] = methods
+        # --- The recursive step ---
+        # Recurse for children of this node
+        for child in node.get_children():
+            walk_ast(child)
 
+    # Start the traversal from the root of the AST
+    walk_ast(translation_unit.cursor)
+    
     return interfaces

@@ -26,7 +26,8 @@ dependencies = [
     "questionary",
     "rich",
     "pyyaml",
-    "cryptography"
+    "cryptography",
+    "pyOpenSSL"
 ]
 
 [project.scripts]

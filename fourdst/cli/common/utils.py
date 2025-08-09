@@ -33,12 +33,13 @@ def get_template_content(template_name: str) -> str:
         print(f"Error: Template file '{template_name}' not found.", file=sys.stderr)
         sys.exit(1)
 
-def run_command(command: list[str], cwd: Path = None, check=True, display_output: bool = False):
-    """Runs a command, optionally displaying its output in a formatted box."""
+def run_command(command: list[str], cwd: Path = None, check=True, display_output: bool = False, env: dict = None):
+    """Runs a command, optionally displaying its output and using a custom environment."""
     command_str = ' '.join(command)
     
     try:
-        result = subprocess.run(command, check=check, capture_output=True, text=True, cwd=cwd)
+        # Pass the env dictionary to subprocess.run
+        result = subprocess.run(command, check=check, capture_output=True, text=True, cwd=cwd, env=env)
         
         if display_output and (result.stdout or result.stderr):
             output_text = ""
@@ -72,7 +73,7 @@ def run_command(command: list[str], cwd: Path = None, check=True, display_output
             raise typer.Exit(code=1)
         return e
 
-def _detect_and_cache_abi(cross_file: Path = None):
+def _detect_and_cache_abi():
     """
     Compiles and runs a C++ program to detect the compiler ABI, then caches it.
     """
@@ -103,11 +104,23 @@ def _detect_and_cache_abi(cross_file: Path = None):
         
         compiler = abi_details.get('compiler', 'unk_compiler')
         stdlib = abi_details.get('stdlib', 'unk_stdlib')
-        stdlib_version = abi_details.get('stdlib_version', 'unk_stdlib_version')
+        
+        # --- MODIFIED LOGIC FOR MACOS VERSIONING ---
+        # On macOS, the OS version is more useful than the internal libc++ version.
+        # But for the generic host detection, we still use the detected version.
+        # The targeting logic will override this.
+        if sys.platform == "darwin":
+            # The C++ detector provides the internal _LIBCPP_VERSION
+            stdlib_version = abi_details.get('stdlib_version', 'unk_stdlib_version')
+            detected_os = "macos"
+        else:
+            # On Linux, this will be the glibc version
+            stdlib_version = abi_details.get('stdlib_version', 'unk_stdlib_version')
+            detected_os = abi_details.get("os", "linux")
+
         abi = abi_details.get('abi', 'unk_abi')
         abi_string = f"{compiler}-{stdlib}-{stdlib_version}-{abi}"
         
-        detected_os = abi_details.get("os", "unknown_os")
         arch = platform.machine()
         
         platform_identifier = {
@@ -139,6 +152,39 @@ def get_platform_identifier() -> dict:
             return json.load(f)
     else:
         return _detect_and_cache_abi()
+
+def get_macos_targeted_platform_identifier(target_version: str) -> dict:
+    """
+    Generates a platform identifier for a specific target macOS version.
+    This bypasses host detection for the version string.
+    """
+    # We still need the host's compiler info, so we run detection if not cached.
+    host_platform = get_platform_identifier()
+    host_details = host_platform['details']
+
+    compiler = host_details.get('compiler', 'clang')
+    stdlib = host_details.get('stdlib', 'libc++')
+    abi = host_details.get('abi', 'libc++_abi')
+    arch = platform.machine()
+    
+    abi_string = f"{compiler}-{stdlib}-{target_version}-{abi}"
+
+    return {
+        "triplet": f"{arch}-macos",
+        "abi_signature": abi_string,
+        "details": {
+            "os": "macos",
+            "compiler": compiler,
+            "compiler_version": host_details.get('compiler_version'),
+            "stdlib": stdlib,
+            "stdlib_version": target_version, # The key change is here
+            "abi": abi,
+        },
+        "is_native": True,
+        "cross_file": None,
+        "docker_image": None,
+        "arch": arch
+    }
 
 def get_available_build_targets() -> list:
     """Gets native, cross-compilation, and Docker build targets."""

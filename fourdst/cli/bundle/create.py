@@ -8,8 +8,7 @@ import datetime
 import yaml
 import zipfile
 from pathlib import Path
-
-from fourdst.cli.common.utils import get_platform_identifier, run_command
+from fourdst.cli.common.utils import get_platform_identifier, get_macos_targeted_platform_identifier, run_command
 
 bundle_app = typer.Typer()
 
@@ -19,7 +18,9 @@ def bundle_create(
     output_bundle: Path = typer.Option("bundle.fbundle", "--out", "-o", help="The path for the output bundle file."),
     bundle_name: str = typer.Option("MyPluginBundle", "--name", help="The name of the bundle."),
     bundle_version: str = typer.Option("0.1.0", "--ver", help="The version of the bundle."),
-    bundle_author: str = typer.Option("Unknown", "--author", help="The author of the bundle.")
+    bundle_author: str = typer.Option("Unknown", "--author", help="The author of the bundle."),
+    # --- NEW OPTION ---
+    target_macos_version: str = typer.Option(None, "--target-macos-version", help="The minimum macOS version to target (e.g., '12.0').")
 ):
     """
     Builds and packages one or more plugin projects into a single .fbundle file.
@@ -29,8 +30,22 @@ def bundle_create(
         shutil.rmtree(staging_dir)
     staging_dir.mkdir()
 
-    # Get the host platform identifier, triggering detection if needed.
-    host_platform = get_platform_identifier()
+    # --- MODIFIED LOGIC ---
+    # Prepare environment for the build
+    build_env = os.environ.copy()
+    
+    # Determine the host platform identifier based on the target
+    if sys.platform == "darwin" and target_macos_version:
+        typer.secho(f"Targeting macOS version: {target_macos_version}", fg=typer.colors.CYAN)
+        host_platform = get_macos_targeted_platform_identifier(target_macos_version)
+        
+        # Set environment variables for Meson to pick up
+        flags = f"-mmacosx-version-min={target_macos_version}"
+        build_env["CXXFLAGS"] = f"{build_env.get('CXXFLAGS', '')} {flags}".strip()
+        build_env["LDFLAGS"] = f"{build_env.get('LDFLAGS', '')} {flags}".strip()
+    else:
+        # Default behavior for Linux or non-targeted macOS builds
+        host_platform = get_platform_identifier()
 
     manifest = {
         "bundleName": bundle_name,
@@ -46,12 +61,15 @@ def bundle_create(
         plugin_name = plugin_dir.name
         print(f"--> Processing plugin: {plugin_name}")
 
-        # 1. Build the plugin
-        print(f"    - Compiling for host platform...")
+        # 1. Build the plugin using the prepared environment
+        print(f"    - Compiling for target platform...")
         build_dir = plugin_dir / "builddir"
-        if not build_dir.exists():
-            run_command(["meson", "setup", "builddir"], cwd=plugin_dir)
-        run_command(["meson", "compile", "-C", "builddir"], cwd=plugin_dir)
+        if build_dir.exists():
+            shutil.rmtree(build_dir) # Reconfigure every time to apply env vars
+
+        # Pass the modified environment to the Meson commands
+        run_command(["meson", "setup", "builddir"], cwd=plugin_dir, env=build_env)
+        run_command(["meson", "compile", "-C", "builddir"], cwd=plugin_dir, env=build_env)
 
         # 2. Find the compiled artifact
         compiled_lib = next(build_dir.glob("lib*.so"), None) or next(build_dir.glob("lib*.dylib"), None)
@@ -63,16 +81,13 @@ def bundle_create(
         print("    - Packaging source code (respecting .gitignore)...")
         sdist_path = staging_dir / f"{plugin_name}_src.zip"
         
-        # Use git to list files, which automatically respects .gitignore
         git_check = run_command(["git", "rev-parse", "--is-inside-work-tree"], cwd=plugin_dir, check=False)
         
         files_to_include = []
         if git_check.returncode == 0:
-            # This is a git repo, use git to list files
             result = run_command(["git", "ls-files", "--cached", "--others", "--exclude-standard"], cwd=plugin_dir)
             files_to_include = [plugin_dir / f for f in result.stdout.strip().split('\n') if f]
         else:
-            # Not a git repo, fall back to os.walk and warn the user
             typer.secho(f"    - Warning: '{plugin_dir.name}' is not a git repository. Packaging all files.", fg=typer.colors.YELLOW)
             for root, _, files in os.walk(plugin_dir):
                 if 'builddir' in root:
@@ -89,9 +104,8 @@ def bundle_create(
         binaries_dir = staging_dir / "bin"
         binaries_dir.mkdir(exist_ok=True)
         
-        # Construct new filename with arch, os, and ABI tag
-        base_name = compiled_lib.stem # e.g., "libplugin_a"
-        ext = compiled_lib.suffix     # e.g., ".so"
+        base_name = compiled_lib.stem
+        ext = compiled_lib.suffix
         triplet = host_platform["triplet"]
         abi_signature = host_platform["abi_signature"]
         tagged_filename = f"{base_name}.{triplet}.{abi_signature}{ext}"
@@ -109,7 +123,9 @@ def bundle_create(
             "binaries": [{
                 "platform": {
                     "triplet": host_platform["triplet"],
-                    "abi_signature": host_platform["abi_signature"]
+                    "abi_signature": host_platform["abi_signature"],
+                    # Adding arch separately for clarity, matching 'fill' command
+                    "arch": host_platform["arch"]
                 },
                 "path": staged_lib_path.relative_to(staging_dir).as_posix(),
                 "compiledOn": datetime.datetime.now().isoformat()
