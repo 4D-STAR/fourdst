@@ -336,8 +336,10 @@ async function handleValidateBundle() {
   hideSpinner();
 
   if (result.success) {
-    const validation = result.data;
-    const validationIssues = validation.errors.concat(validation.warnings);
+    // With the new JSON architecture, validation data is directly in result
+    const errors = result.errors || [];
+    const warnings = result.warnings || [];
+    const validationIssues = errors.concat(warnings);
     
     if (validationIssues.length > 0) {
       validationResults.textContent = validationIssues.join('\n');
@@ -346,9 +348,14 @@ async function handleValidateBundle() {
       validationResults.textContent = 'Bundle is valid.';
       validationTabLink.classList.add('hidden');
     }
-    // Switch to the validation tab to show the results.
+    
+    // Switch to the validation tab to show the results
     switchTab('validation-tab');
-    showModal('Validation Complete', 'Validation check has finished.');
+    
+    // Show summary in modal
+    const summary = result.summary || { errors: errors.length, warnings: warnings.length };
+    const message = `Validation finished with ${summary.errors} errors and ${summary.warnings} warnings.`;
+    showModal('Validation Complete', message);
 
   } else {
     showModal('Validation Error', `Failed to validate bundle: ${result.error}`);
