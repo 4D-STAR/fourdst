@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>4DSTAR Bundle Manager</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+
+<body>
+    <div class="main-container">
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <h3>4DSTAR</h3>
+            </div>
+            <nav class="sidebar-nav">
+                <button id="open-bundle-btn" class="nav-button active">Open Bundle</button>
+                <button id="create-bundle-btn" class="nav-button">Create Bundle</button>
+            </nav>
+            <div class="sidebar-footer">
+                <p>v1.0.0</p>
+            </div>
+        </aside>
+
+        <main class="content-area">
+            <div id="welcome-screen">
+                <h1>Welcome to 4DSTAR Bundle Manager</h1>
+                <p>Open or create a bundle to get started.</p>
+            </div>
+
+            <div id="bundle-view" class="hidden">
+                <header class="content-header">
+                    <h2 id="bundle-title"></h2>
+                    <div class="action-buttons">
+                        <button id="edit-bundle-btn">Edit</button>
+                        <button id="sign-bundle-btn">Sign</button>
+                        <button id="validate-bundle-btn">Validate</button>
+                        <button id="fill-bundle-btn">Fill</button>
+                        <button id="clear-bundle-btn">Clear</button>
+                    </div>
+                </header>
+
+                <div class="tab-nav">
+                    <button class="tab-link active" data-tab="overview-tab">Overview</button>
+                    <button class="tab-link" data-tab="plugins-tab">Plugins</button>
+                    <button class="tab-link" data-tab="validation-tab" class="hidden">Validation</button>
+                </div>
+
+                <div id="tab-content">
+                    <div id="overview-tab" class="tab-pane active">
+                        <div class="action-buttons">
+                            <button id="sign-bundle-button" class="action-button">Sign Bundle</button>
+                            <button id="validate-bundle-button" class="action-button">Validate Bundle</button>
+                            <button id="fill-bundle-button" class="action-button">Fill Bundle...</button>
+                            <button id="clear-bundle-button" class="action-button">Clear Binaries</button>
+                        </div>
+                        <div id="manifest-details"></div>
+                    </div>
+                    <div id="plugins-tab" class="tab-pane">
+                        <div id="plugins-list"></div>
+                    </div>
+                    <div id="validation-tab" class="tab-pane">
+                        <pre id="validation-results"></pre>
+                    </div>
+                </div>
+            </div>
+
+            <div id="create-bundle-form" class="hidden">
+                <!-- The create form will be moved into a modal later -->
+            </div>
+        </main>
+    </div>
+
+    <!-- Modal for status/error messages -->
+    <div id="modal" class="modal-container hidden">
+        <div class="modal-content">
+            <span id="modal-close-btn" class="modal-close">&times;</span>
+            <h3 id="modal-title"></h3>
+            <div id="modal-message"></div>
+        </div>
+    </div>
+
+    <!-- Fill Modal -->
+    <div id="fill-modal" class="modal">
+        <div class="modal-content">
+            <span class="close-fill-modal-button">&times;</span>
+            <h2 id="fill-modal-title">Fill Bundle</h2>
+            <div id="fill-modal-body">
+                <p>Select targets to build and add to the bundle:</p>
+                <div id="fill-targets-list"></div>
+                <button id="start-fill-button" class="action-button">Start Fill</button>
+            </div>
+            <div id="fill-progress-view" style="display: none;">
+                <h3>Fill Progress:</h3>
+                <div id="fill-progress-list"></div>
+            </div>
+        </div>
+    </div>
+
+    <div id="spinner" class="spinner hidden"></div>
+
+    <script src="renderer.js"></script>
+</body>
+
+</html>

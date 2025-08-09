@@ -97,3 +97,5 @@ output/
 .idea/
 
 scratch/
+
+node_modules/

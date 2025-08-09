@@ -1,23 +1,14 @@
 # fourdst/cli/bundle/diff.py
 import typer
-import yaml
-import zipfile
 from pathlib import Path
-import tempfile
-import shutil
-import difflib
 from rich.console import Console
 from rich.panel import Panel
 from rich.text import Text
 from rich.table import Table
 
-console = Console()
+from fourdst.core.bundle import diff_bundle
 
-def _get_file_content(directory: Path, filename: str):
-    file_path = directory / filename
-    if not file_path.exists():
-        return None
-    return file_path.read_bytes()
+console = Console()
 
 def bundle_diff(
     bundle_a_path: Path = typer.Argument(..., help="The first bundle to compare.", exists=True, readable=True),
@@ -28,94 +19,59 @@ def bundle_diff(
     """
     console.print(Panel(f"Comparing [bold blue]{bundle_a_path.name}[/bold blue] with [bold blue]{bundle_b_path.name}[/bold blue]"))
 
-    with tempfile.TemporaryDirectory() as temp_a_str, tempfile.TemporaryDirectory() as temp_b_str:
-        temp_a = Path(temp_a_str)
-        temp_b = Path(temp_b_str)
+    try:
+        results = diff_bundle(bundle_a_path, bundle_b_path, progress_callback=typer.echo)
+    except Exception as e:
+        typer.secho(f"Error comparing bundles: {e}", fg=typer.colors.RED)
+        raise typer.Exit(code=1)
 
-        # Unpack both bundles
-        with zipfile.ZipFile(bundle_a_path, 'r') as z: z.extractall(temp_a)
-        with zipfile.ZipFile(bundle_b_path, 'r') as z: z.extractall(temp_b)
+    # --- 1. Display Signature Differences ---
+    sig_status = results['signature']['status']
+    style_map = {
+        'UNCHANGED': ('[green]UNCHANGED[/green]', 'green'),
+        'REMOVED': ('[yellow]REMOVED[/yellow]', 'yellow'),
+        'ADDED': ('[yellow]ADDED[/yellow]', 'yellow'),
+        'CHANGED': ('[bold red]CHANGED[/bold red]', 'red'),
+        'UNSIGNED': ('[dim]Both Unsigned[/dim]', 'dim'),
+    }
+    sig_text, sig_style = style_map.get(sig_status, (sig_status, 'white'))
+    console.print(Panel(f"Signature Status: {sig_text}", title="[bold]Signature Verification[/bold]", border_style=sig_style, expand=False))
 
-        # --- 1. Compare Signatures ---
-        sig_a = _get_file_content(temp_a, "manifest.sig")
-        sig_b = _get_file_content(temp_b, "manifest.sig")
-        
-        sig_panel_style = "green"
-        sig_status = ""
-        if sig_a == sig_b and sig_a is not None:
-            sig_status = "[green]UNCHANGED[/green]"
-        elif sig_a and not sig_b:
-            sig_status = "[yellow]REMOVED[/yellow]"
-            sig_panel_style = "yellow"
-        elif not sig_a and sig_b:
-            sig_status = "[yellow]ADDED[/yellow]"
-            sig_panel_style = "yellow"
-        elif sig_a and sig_b and sig_a != sig_b:
-            sig_status = "[bold red]CHANGED[/bold red]"
-            sig_panel_style = "red"
-        else:
-            sig_status = "[dim]Both Unsigned[/dim]"
-            sig_panel_style = "dim"
-        
-        console.print(Panel(f"Signature Status: {sig_status}", title="[bold]Signature Verification[/bold]", border_style=sig_panel_style, expand=False))
+    # --- 2. Display Manifest Differences ---
+    manifest_diff = results['manifest']['diff']
+    if manifest_diff:
+        diff_text = Text()
+        for line in manifest_diff:
+            if line.startswith('+'):
+                diff_text.append(line, style="green")
+            elif line.startswith('-'):
+                diff_text.append(line, style="red")
+            elif line.startswith('^'):
+                diff_text.append(line, style="blue")
+            else:
+                diff_text.append(line)
+        console.print(Panel(diff_text, title="[bold]Manifest Differences[/bold]", border_style="yellow"))
+    else:
+        console.print(Panel("[green]Manifests are identical.[/green]", title="[bold]Manifest[/bold]", border_style="green"))
 
-        # --- 2. Compare Manifests ---
-        manifest_a_content = (temp_a / "manifest.yaml").read_text()
-        manifest_b_content = (temp_b / "manifest.yaml").read_text()
-        
-        if manifest_a_content != manifest_b_content:
-            diff = difflib.unified_diff(
-                manifest_a_content.splitlines(keepends=True),
-                manifest_b_content.splitlines(keepends=True),
-                fromfile=f"{bundle_a_path.name}/manifest.yaml",
-                tofile=f"{bundle_b_path.name}/manifest.yaml",
-            )
-            
-            diff_text = Text()
-            for line in diff:
-                if line.startswith('+'):
-                    diff_text.append(line, style="green")
-                elif line.startswith('-'):
-                    diff_text.append(line, style="red")
-                elif line.startswith('^'):
-                    diff_text.append(line, style="blue")
-                else:
-                    diff_text.append(line)
-            
-            console.print(Panel(diff_text, title="[bold]Manifest Differences[/bold]", border_style="yellow"))
-        else:
-             console.print(Panel("[green]Manifests are identical.[/green]", title="[bold]Manifest[/bold]", border_style="green"))
-
-        # --- 3. Compare File Contents (via checksums) ---
-        manifest_a = yaml.safe_load(manifest_a_content)
-        manifest_b = yaml.safe_load(manifest_b_content)
-
-        files_a = {p['path']: p.get('checksum') for p in manifest_a.get('bundlePlugins', {}).get(next(iter(manifest_a.get('bundlePlugins', {})), ''), {}).get('binaries', [])}
-        files_b = {p['path']: p.get('checksum') for p in manifest_b.get('bundlePlugins', {}).get(next(iter(manifest_b.get('bundlePlugins', {})), ''), {}).get('binaries', [])}
-
+    # --- 3. Display File Content Differences ---
+    file_diffs = results['files']
+    if file_diffs:
         table = Table(title="File Content Comparison")
         table.add_column("File Path", style="cyan")
         table.add_column("Status", style="magenta")
         table.add_column("Details", style="yellow")
 
-        all_files = sorted(list(set(files_a.keys()) | set(files_b.keys())))
-        has_content_changes = False
+        status_map = {
+            'REMOVED': '[red]REMOVED[/red]',
+            'ADDED': '[green]ADDED[/green]',
+            'MODIFIED': '[yellow]MODIFIED[/yellow]'
+        }
 
-        for file in all_files:
-            in_a = file in files_a
-            in_b = file in files_b
-
-            if in_a and not in_b:
-                table.add_row(file, "[red]REMOVED[/red]", "")
-                has_content_changes = True
-            elif not in_a and in_b:
-                table.add_row(file, "[green]ADDED[/green]", "")
-                has_content_changes = True
-            elif files_a[file] != files_b[file]:
-                table.add_row(file, "[yellow]MODIFIED[/yellow]", f"Checksum changed from {files_a.get(file, 'N/A')} to {files_b.get(file, 'N/A')}")
-                has_content_changes = True
+        for diff in file_diffs:
+            status_text = status_map.get(diff['status'], diff['status'])
+            table.add_row(diff['path'], status_text, diff['details'])
         
-        if has_content_changes:
-            console.print(table)
-        else:
-            console.print(Panel("[green]All file contents are identical.[/green]", title="[bold]File Contents[/bold]", border_style="green"))
+        console.print(table)
+    else:
+        console.print(Panel("[green]All file contents are identical.[/green]", title="[bold]File Contents[/bold]", border_style="green"))

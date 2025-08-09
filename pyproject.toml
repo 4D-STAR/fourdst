@@ -21,13 +21,14 @@ maintainers = [
 ]
 
 dependencies = [
-    "typer[all]",
+    "typer",
     "libclang",
     "questionary",
     "rich",
     "pyyaml",
     "cryptography",
-    "pyOpenSSL"
+    "pyOpenSSL",
+    "pyinstaller"
 ]
 
 [project.scripts]

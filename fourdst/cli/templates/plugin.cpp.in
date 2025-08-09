@@ -4,6 +4,7 @@
 
 class {class_name} final : public {interface} {{
 public:
+    using {interface}::{interface};
     ~{class_name}() override {{
         // Implement any custom destruction logic here
     }}

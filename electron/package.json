@@ -1,0 +1,58 @@
+{
+  "name": "fourdst-bundle-manager",
+  "version": "1.0.0",
+  "description": "Electron app for managing fbundle archives",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "dev": "electron .",
+    "build": "electron-builder",
+    "pack": "electron-builder --dir"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/tboudreaux/fourdst"
+  },
+  "keywords": [
+    "Electron",
+    "fbundle",
+    "4DSTAR"
+  ],
+  "author": "4DSTAR Team",
+  "license": "MIT",
+  "devDependencies": {
+    "electron": "^31.0.2",
+    "adm-zip": "^0.5.14",
+    "electron-builder": "^24.0.0",
+    "electron-squirrel-startup": "^1.0.1"
+  },
+  "dependencies": {
+    "fs-extra": "^11.0.0",
+    "js-yaml": "^4.1.0",
+    "adm-zip": "^0.5.14",
+    "@electron/remote": "^2.0.0",
+    "python-shell": "^5.0.0"
+  },
+  "build": {
+    "appId": "com.fourdst.bundlemanager",
+    "productName": "4DSTAR Bundle Manager",
+    "directories": {
+      "output": "dist"
+    },
+    "mac": {
+      "category": "public.app-category.developer-tools",
+      "target": [
+        "dmg",
+        "zip"
+      ]
+    },
+    "linux": {
+      "target": [
+        "AppImage",
+        "deb",
+        "rpm"
+      ],
+      "category": "Development"
+    }
+  }
+}

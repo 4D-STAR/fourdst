@@ -39,6 +39,14 @@ app = typer.Typer(
 
 plugin_app = typer.Typer(name="plugin", help="Commands for managing individual fourdst plugins.")
 bundle_app = typer.Typer(name="bundle", help="Commands for creating, signing, and managing plugin bundles.")
+
+bundle_app.command("create")(bundle_create)
+bundle_app.command("fill")(bundle_fill)
+bundle_app.command("sign")(bundle_sign)
+bundle_app.command("inspect")(bundle_inspect)
+bundle_app.command("clear")(bundle_clear)
+bundle_app.command("diff")(bundle_diff)
+bundle_app.command("validate")(bundle_validate)
 cache_app = typer.Typer(name="cache", help="Commands for managing the local cache.")
 
 keys_app = typer.Typer(name="keys", help="Commands for cryptographic key generation and management.")

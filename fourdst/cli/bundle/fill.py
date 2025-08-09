@@ -7,6 +7,8 @@ import yaml
 import zipfile
 from pathlib import Path
 import questionary
+from prompt_toolkit.key_binding import KeyBindings
+from questionary.prompts.checkbox import checkbox
 import subprocess
 import sys
 import traceback
@@ -21,11 +23,66 @@ from rich.panel import Panel
 
 console = Console()
 
-from fourdst.cli.common.utils import get_available_build_targets, _build_plugin_in_docker, _build_plugin_for_target
+from fourdst.core.bundle import get_fillable_targets, fill_bundle
+from fourdst.cli.common.utils import run_command_rich # Keep for progress display if needed
 
-bundle_app = typer.Typer()
+custom_key_bindings = KeyBindings()
 
-@bundle_app.command("fill")
+def _is_arch(target_info, arch_keywords):
+    """Helper to check if a target's info contains architecture keywords."""
+    # Combine all relevant string values from the target dict to check against.
+    text_to_check = ""
+    if 'triplet' in target_info:
+        text_to_check += target_info['triplet'].lower()
+    if 'docker_image' in target_info:
+        text_to_check += target_info['docker_image'].lower()
+    if 'cross_file' in target_info:
+        # Convert path to string for searching
+        text_to_check += str(target_info['cross_file']).lower()
+
+    if not text_to_check:
+        return False
+
+    return any(keyword in text_to_check for keyword in arch_keywords)
+
+@custom_key_bindings.add('c-a')
+def _(event):
+    """
+    Handler for Ctrl+A. Selects all ARM targets.
+    """
+    control = event.app.layout.current_control
+    # Keywords to identify ARM architectures
+    arm_keywords = ['aarch64', 'arm64']
+
+    for i, choice in enumerate(control.choices):
+        # The choice.value is the dictionary we passed to questionary.Choice
+        target_info = choice.value.get('target', {})
+        if _is_arch(target_info, arm_keywords):
+            # Add the index to the set of selected items
+            if i not in control.selected_indexes:
+                control.selected_indexes.add(i)
+
+    # Redraw the UI to show the new selections
+    event.app.invalidate()
+
+
+@custom_key_bindings.add('c-x')
+def _(event):
+    """
+    Handler for Ctrl+X. Selects all x86 targets.
+    """
+    control = event.app.layout.current_control
+    # Keywords to identify x86 architectures
+    x86_keywords = ['x86_64', 'x86', 'amd64'] # 'amd64' is a common alias in Docker
+
+    for i, choice in enumerate(control.choices):
+        target_info = choice.value.get('target', {})
+        if _is_arch(target_info, x86_keywords):
+            if i not in control.selected_indexes:
+                control.selected_indexes.add(i)
+
+    event.app.invalidate()    
+
 def bundle_fill(bundle_path: Path = typer.Argument(..., help="The .fbundle file to fill with new binaries.", exists=True)):
     """
     Builds new binaries for the current host or cross-targets from the bundle's source.
@@ -34,138 +91,95 @@ def bundle_fill(bundle_path: Path = typer.Argument(..., help="The .fbundle file 
     if staging_dir.exists():
         shutil.rmtree(staging_dir)
     
+    console.print(Panel(f"[bold]Filling Bundle:[/bold] {bundle_path.name}", expand=False, border_style="blue"))
+
+    # 1. Find available targets and missing binaries using the core function
     try:
-        # 1. Unpack and load manifest
-        with zipfile.ZipFile(bundle_path, 'r') as bundle_zip:
-            bundle_zip.extractall(staging_dir)
+        fillable_targets = get_fillable_targets(bundle_path)
+    except Exception as e:
+        console.print(f"[red]Error analyzing bundle: {e}[/red]")
+        raise typer.Exit(code=1)
 
-        manifest_path = staging_dir / "manifest.yaml"
-        if not manifest_path.exists():
-            typer.secho("Error: Bundle is invalid. Missing manifest.yaml.", fg=typer.colors.RED)
-            raise typer.Exit(code=1)
+    if not fillable_targets:
+        console.print("[green]✅ Bundle is already full for all available build targets.[/green]")
+        raise typer.Exit()
+
+    # 2. Create interactive choices for the user
+    build_options = []
+    BOLD = "\033[1m"
+    RESET = "\033[0m"
+    CYAN = "\033[36m"
+    for plugin_name, targets in fillable_targets.items():
+        for target in targets:
+            if target['type'] == 'docker':
+                display_name = f"Docker: {target['docker_image']}"
+            elif target['type'] == 'cross':
+                display_name = f"Cross-compile: {Path(target['cross_file']).name}"
+            else: # native
+                display_name = f"Native: {target['triplet']}"
+            
+            build_options.append({
+                "name": f"Build {plugin_name} for {display_name}",
+                "value": {"plugin_name": plugin_name, "target": target}
+            })
         
-        with open(manifest_path, 'r') as f:
-            manifest = yaml.safe_load(f)
+    # 3. Prompt user to select which targets to build
+    if not build_options:
+        console.print("[yellow]No buildable targets found.[/yellow]")
+        raise typer.Exit()
 
-        # 2. Find available targets and missing binaries
-        available_targets = get_available_build_targets()
-        build_options = []
-        
-        for plugin_name, plugin_data in manifest.get('bundlePlugins', {}).items():
-            if "sdist" not in plugin_data:
-                continue # Cannot build without source
-            
-            existing_abis = {b['platform']['abi_signature'] for b in plugin_data.get('binaries', [])}
-            
-            for target in available_targets:
-                # Use a more descriptive name for the choice
-                if target.get('docker_image', None):
-                    display_name = f"Docker: {target['docker_image']}"
-                elif target.get('cross_file', None):
-                    display_name = f"Cross: {Path(target['cross_file']).name}"
-                else:
-                    display_name = f"Native: {target['abi_signature']} (Local System)"
+    choices = [
+        questionary.Choice(title=opt['name'], value=opt['value'])
+        for opt in build_options
+    ]
 
-                if target['abi_signature'] not in existing_abis:
-                    build_options.append({
-                        "name": f"Build '{plugin_name}' for {display_name}",
-                        "plugin_name": plugin_name,
-                        "target": target
-                    })
-        
-        if not build_options:
-            typer.secho("✅ Bundle is already full for all available build targets.", fg=typer.colors.GREEN)
-            raise typer.Exit()
-            
-        # 3. Prompt user to select which targets to build
-        choices = [opt['name'] for opt in build_options]
-        selected_builds = questionary.checkbox(
-            "Select which missing binaries to build:", 
-            choices=choices
-        ).ask()
-        
-        if not selected_builds:
-            typer.echo("No binaries selected to build. Exiting.")
-            raise typer.Exit()
-            
-        # 4. Build selected targets
-        for build_name in selected_builds:
-            build_job = next(opt for opt in build_options if opt['name'] == build_name)
-            plugin_name = build_job['plugin_name']
-            target = build_job['target']
-            
-            typer.secho(f"\nBuilding {plugin_name} for target '{build_name}'...", bold=True)
-            
-            sdist_zip_path = staging_dir / manifest['bundlePlugins'][plugin_name]['sdist']['path']
-            build_temp_dir = staging_dir / f"build_{plugin_name}"
+    message = (
+        "Select which missing binaries to build:\n"
+        "  (Press [Ctrl+A] to select all ARM, [Ctrl+X] to select all x86)"
+    )
 
-            try:
-                if target['docker_image']:
-                    if not docker:
-                        typer.secho("Error: Docker is not installed. Please install Docker to build this target.", fg=typer.colors.RED)
-                        continue
-                    compiled_lib, final_target = _build_plugin_in_docker(sdist_zip_path, build_temp_dir, target, plugin_name)
-                else:
-                    compiled_lib, final_target = _build_plugin_for_target(sdist_zip_path, build_temp_dir, target)
-                
-                # Add new binary to bundle
-                abi_tag = final_target["abi_signature"]
-                base_name = compiled_lib.stem
-                ext = compiled_lib.suffix
-                triplet = final_target["triplet"]
-                tagged_filename = f"{base_name}.{triplet}.{abi_tag}{ext}"
-                
-                binaries_dir = staging_dir / "bin"
-                binaries_dir.mkdir(exist_ok=True)
-                staged_lib_path = binaries_dir / tagged_filename
-                shutil.move(compiled_lib, staged_lib_path)
-                
-                # Update manifest
-                new_binary_entry = {
-                    "platform": {
-                        "triplet": final_target["triplet"],
-                        "abi_signature": abi_tag,
-                        "arch": final_target["arch"]
-                    },
-                    "path": staged_lib_path.relative_to(staging_dir).as_posix(),
-                    "compiledOn": datetime.datetime.now().isoformat()
-                }
-                manifest['bundlePlugins'][plugin_name]['binaries'].append(new_binary_entry)
-                typer.secho(f"  -> Successfully built and staged {tagged_filename}", fg=typer.colors.GREEN)
+    # --- START OF FIX ---
+    # 1. Instantiate the Checkbox class directly instead of using the shortcut.
+    prompt = checkbox(
+        message,
+        choices=choices,
+        # key_bindings=custom_key_bindings
+    )
 
-            except (FileNotFoundError, subprocess.CalledProcessError) as e:
-                typer.secho(f"  -> Failed to build {plugin_name} for target '{build_name}': {e}", fg=typer.colors.RED)
-                
-                tb_str = traceback.format_exc()
-                console.print(Panel(
-                    tb_str,
-                    title="Traceback",
-                    border_style="yellow",
-                    expand=False
-                ))
-                
-            finally:
-                if build_temp_dir.exists():
-                    shutil.rmtree(build_temp_dir)
+    # 2. Use .unsafe_ask() to run the prompt object.
+    selected_jobs = prompt.unsafe_ask()
+    # --- END OF FIX ---
+    
+    if not selected_jobs:
+        console.print("No binaries selected to build. Exiting.")
+        raise typer.Exit()
 
-        # 5. Repackage the bundle
-        # Invalidate any old signature
-        if "bundleAuthorKeyFingerprint" in manifest:
-            del manifest["bundleAuthorKeyFingerprint"]
-            if (staging_dir / "manifest.sig").exists():
-                (staging_dir / "manifest.sig").unlink()
-            typer.secho("\n⚠️ Bundle signature has been invalidated by this operation. Please re-sign the bundle.", fg=typer.colors.YELLOW)
+    targets_to_build = {}
+    for job in selected_jobs:
+        plugin_name = job['plugin_name']
+        target = job['target']
+        if plugin_name not in targets_to_build:
+            targets_to_build[plugin_name] = []
+        targets_to_build[plugin_name].append(target)
 
-        with open(manifest_path, 'w') as f:
-            yaml.dump(manifest, f, sort_keys=False)
-            
-        with zipfile.ZipFile(bundle_path, 'w', zipfile.ZIP_DEFLATED) as bundle_zip:
-            for file_path in staging_dir.rglob('*'):
-                if file_path.is_file():
-                    bundle_zip.write(file_path, file_path.relative_to(staging_dir))
-        
-        typer.secho(f"\n✅ Bundle '{bundle_path.name}' has been filled successfully.", fg=typer.colors.GREEN)
+    try:
+        console.print("--- Starting build process ---")
+        fill_bundle(
+            bundle_path,
+            targets_to_build,
+            progress_callback=lambda msg: console.print(f"[dim]  {msg}[/dim]")
+        )
+        console.print("--- Build process finished ---")
+        console.print(f"[green]✅ Bundle '{bundle_path.name}' has been filled successfully.[/green]")
+        console.print("[yellow]⚠️ If the bundle was signed, the signature is now invalid. Please re-sign.[/yellow]")
 
-    finally:
-        if staging_dir.exists():
-            shutil.rmtree(staging_dir)
+    except Exception as e:
+        console.print(f"[red]An error occurred during the build process: {e}[/red]")
+        tb_str = traceback.format_exc()
+        console.print(Panel(
+            tb_str,
+            title="Traceback",
+            border_style="red",
+            expand=False
+        ))
+        raise typer.Exit(code=1)

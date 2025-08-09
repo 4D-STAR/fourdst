@@ -97,3 +97,22 @@ py_installation.install_sources(
     ),
     subdir: 'fourdst/cli/plugin'
 )
+
+py_installation.install_sources(
+    files(
+        meson.project_source_root() + '/fourdst/core/__init__.py',
+        meson.project_source_root() + '/fourdst/core/build.py',
+        meson.project_source_root() + '/fourdst/core/bundle.py',
+        meson.project_source_root() + '/fourdst/core/config.py',
+        meson.project_source_root() + '/fourdst/core/platform.py',
+        meson.project_source_root() + '/fourdst/core/utils.py'
+    ),
+    subdir: 'fourdst/core'
+)
+
+py_installation.install_sources(
+    files(
+        meson.project_source_root() + '/electron/bridge.py',
+    ),
+    subdir: 'fourdst/electron'
+)
