@@ -370,6 +370,99 @@ body {
     vertical-align: middle;
 }
 
+/* Inline Editing Styles */
+.editable-field {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.edit-icon {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 14px;
+    padding: 4px;
+    border-radius: 4px;
+    transition: background-color 0.2s;
+    opacity: 0.6;
+}
+
+.edit-icon:hover {
+    background-color: var(--border-color);
+    opacity: 1;
+}
+
+.field-input {
+    padding: 4px 8px;
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    font-size: 14px;
+    font-family: var(--font-family);
+    background-color: white;
+    min-width: 200px;
+}
+
+.field-input:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.2);
+}
+
+.field-display {
+    flex: 1;
+}
+
+.hidden {
+    display: none !important;
+}
+
+/* Save Options Modal */
+.save-options {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-top: 20px;
+}
+
+.save-option-btn {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 16px;
+    border: 2px solid var(--border-color);
+    border-radius: 8px;
+    background: white;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-align: left;
+}
+
+.save-option-btn:hover {
+    border-color: var(--primary-color);
+    background-color: rgba(52, 152, 219, 0.05);
+}
+
+.save-option-btn.primary {
+    border-color: var(--primary-color);
+}
+
+.save-option-btn.secondary {
+    border-color: var(--text-light);
+}
+
+.save-option-btn strong {
+    font-size: 16px;
+    margin-bottom: 4px;
+    color: var(--text-color);
+}
+
+.save-option-btn small {
+    font-size: 14px;
+    color: var(--text-light);
+}
+
 .progress-indicator.spinner-icon {
     border: 2px solid var(--text-color-light);
     border-top: 2px solid var(--primary-color);

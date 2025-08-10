@@ -31,11 +31,11 @@
                 <header class="content-header">
                     <h2 id="bundle-title"></h2>
                     <div class="action-buttons">
-                        <button id="edit-bundle-btn">Edit</button>
                         <button id="sign-bundle-btn">Sign</button>
                         <button id="validate-bundle-btn">Validate</button>
                         <button id="fill-bundle-btn">Fill</button>
                         <button id="clear-bundle-btn">Clear</button>
+                        <button id="save-metadata-btn" class="hidden">Save Changes</button>
                     </div>
                 </header>
 
@@ -70,6 +70,35 @@
             <span id="modal-close-btn" class="modal-close">&times;</span>
             <h3 id="modal-title"></h3>
             <div id="modal-message"></div>
+        </div>
+    </div>
+
+    <!-- Spinner Overlay -->
+    <div id="spinner-overlay" class="spinner-overlay hidden">
+        <div class="spinner"></div>
+        <p>Processing...</p>
+    </div>
+
+    <!-- Save Options Modal -->
+    <div id="save-options-modal" class="modal-container hidden">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Save Metadata Changes</h3>
+                <button class="modal-close" onclick="hideSaveOptionsModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p>How would you like to save your metadata changes?</p>
+                <div class="save-options">
+                    <button id="overwrite-bundle-btn" class="save-option-btn primary">
+                        <strong>Overwrite Current Bundle</strong>
+                        <small>Update the existing bundle file</small>
+                    </button>
+                    <button id="save-as-new-btn" class="save-option-btn secondary">
+                        <strong>Save As New Bundle</strong>
+                        <small>Create a new bundle file with changes</small>
+                    </button>
+                </div>
+            </div>
         </div>
     </div>
 

@@ -297,3 +297,19 @@ ipcMain.handle('open-bundle', async (event, bundlePath) => {
     // Return error as-is since it's already in the correct format
     return result || { success: false, error: 'An unknown error occurred while opening the bundle.' };
 });
+
+// Handle show save dialog
+ipcMain.handle('show-save-dialog', async (event, options) => {
+    const result = await dialog.showSaveDialog(BrowserWindow.fromWebContents(event.sender), options);
+    return result;
+});
+
+// Handle file copying
+ipcMain.handle('copy-file', async (event, { source, destination }) => {
+    try {
+        await fs.copy(source, destination);
+        return { success: true };
+    } catch (error) {
+        return { success: false, error: error.message };
+    }
+});

@@ -283,10 +283,10 @@ def edit_bundle_metadata(bundle_path: Path, metadata: dict, progress_callback: O
         raise FileNotFoundError("Bundle is not a valid zip file.")
 
     with zipfile.ZipFile(bundle_path, 'a') as zf:
-        if MANIFEST_FILENAME not in zf.namelist():
-            raise FileNotFoundError(f"{MANIFEST_FILENAME} not found in bundle.")
+        if "manifest.yaml" not in zf.namelist():
+            raise FileNotFoundError("manifest.yaml not found in bundle.")
 
-        with zf.open(MANIFEST_FILENAME, 'r') as f:
+        with zf.open("manifest.yaml", 'r') as f:
             manifest = yaml.safe_load(f)
 
         _progress("Updating manifest...")
@@ -305,14 +305,14 @@ def edit_bundle_metadata(bundle_path: Path, metadata: dict, progress_callback: O
         temp_bundle_path = bundle_path.with_suffix('.zip.tmp')
         with zipfile.ZipFile(temp_bundle_path, 'w', zipfile.ZIP_DEFLATED) as temp_zf:
             for item in zf.infolist():
-                if item.filename == MANIFEST_FILENAME:
+                if item.filename == "manifest.yaml":
                     continue # Skip old manifest
                 buffer = zf.read(item.filename)
                 temp_zf.writestr(item, buffer)
             
             # Write the updated manifest
             new_manifest_content = yaml.dump(manifest, Dumper=yaml.SafeDumper)
-            temp_zf.writestr(MANIFEST_FILENAME, new_manifest_content)
+            temp_zf.writestr("manifest.yaml", new_manifest_content)
 
     # Replace the original bundle with the updated one
     shutil.move(temp_bundle_path, bundle_path)
