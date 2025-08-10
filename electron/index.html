@@ -8,20 +8,83 @@
 
 <body>
     <div class="main-container">
-        <aside class="sidebar">
-            <div class="sidebar-header">
-                <h3>4DSTAR</h3>
+        <!-- Primary Category Sidebar (Tier 1) -->
+        <aside class="primary-sidebar" id="primary-sidebar">
+            <div class="primary-sidebar-header">
+                <div class="brand-icon">
+                    <div class="star-icon">✦</div>
+                    <div class="brand-text">4D</div>
+                    <h3 class="app-title">STAR</h3>
+                </div>
             </div>
-            <nav class="sidebar-nav">
-                <button id="open-bundle-btn" class="nav-button active">Open Bundle</button>
-                <button id="create-bundle-btn" class="nav-button">Create Bundle</button>
+            <nav class="category-nav">
+                <div class="category-item active" data-category="libplugin" title="libplugin">
+                    <div class="category-icon" style="background-color: #3b82f6;">LP</div>
+                    <span class="category-label">libplugin</span>
+                </div>
+                <div class="category-item" data-category="libconstants" title="libconstants">
+                    <div class="category-icon" style="background-color: #10b981;">LC</div>
+                    <span class="category-label">libconstants</span>
+                </div>
+                <div class="category-item" data-category="opat" title="OPAT Core">
+                    <div class="category-icon" style="background-color: #f59e0b;">OC</div>
+                    <span class="category-label">OPAT Core</span>
+                </div>
+                <div class="category-item" data-category="serif" title="SERiF Libraries">
+                    <div class="category-icon" style="background-color: #ef4444;">SL</div>
+                    <span class="category-label">SERiF Libraries</span>
+                </div>
             </nav>
-            <div class="sidebar-footer">
-                <p>v1.0.0</p>
+            <div class="primary-sidebar-footer">
+                <div class="version-info">v1.0.0</div>
                 <button id="info-btn" class="info-button" title="About 4DSTAR">
                     <span class="info-icon">ℹ️</span>
-                    Info
+                    <span class="info-label">Info</span>
                 </button>
+            </div>
+        </aside>
+
+        <!-- Secondary Content Sidebar (Tier 2) -->
+        <aside class="secondary-sidebar" id="secondary-sidebar">
+            <!-- libplugin content (existing sidebar content) -->
+            <div class="sidebar-content" data-category="libplugin">
+                <div class="sidebar-header">
+                    <h3>Bundle Manager</h3>
+                </div>
+                <nav class="sidebar-nav">
+                    <button id="open-bundle-btn" class="nav-button active">Open Bundle</button>
+                    <button id="create-bundle-btn" class="nav-button">Create Bundle</button>
+                </nav>
+            </div>
+
+            <!-- libconstants content (empty for now) -->
+            <div class="sidebar-content hidden" data-category="libconstants">
+                <div class="sidebar-header">
+                    <h3>Constants</h3>
+                </div>
+                <div class="empty-state">
+                    <p>Constants tools coming soon...</p>
+                </div>
+            </div>
+
+            <!-- OPAT Core content (empty for now) -->
+            <div class="sidebar-content hidden" data-category="opat">
+                <div class="sidebar-header">
+                    <h3>OPAT Core</h3>
+                </div>
+                <div class="empty-state">
+                    <p>OPAT tools coming soon...</p>
+                </div>
+            </div>
+
+            <!-- SERiF Libraries content (empty for now) -->
+            <div class="sidebar-content hidden" data-category="serif">
+                <div class="sidebar-header">
+                    <h3>SERiF Libraries</h3>
+                </div>
+                <div class="empty-state">
+                    <p>SERiF tools coming soon...</p>
+                </div>
             </div>
         </aside>
 

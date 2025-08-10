@@ -258,9 +258,62 @@ function setupEventListeners() {
   // GitHub link functionality
   githubLink.addEventListener('click', (e) => {
     e.preventDefault();
+    // You can update this URL to the actual GitHub repository
     const { ipcRenderer } = require('electron');
     ipcRenderer.invoke('open-external', 'https://github.com/tboudreaux/4DSTAR');
   });
+
+  // Two-Tiered Sidebar functionality
+  const categoryItems = document.querySelectorAll('.category-item');
+  const sidebarContents = document.querySelectorAll('.sidebar-content');
+
+  // Category switching functionality
+  categoryItems.forEach(categoryItem => {
+    categoryItem.addEventListener('click', () => {
+      const selectedCategory = categoryItem.getAttribute('data-category');
+      
+      // Remove active class from all category items
+      categoryItems.forEach(item => item.classList.remove('active'));
+      
+      // Add active class to clicked category
+      categoryItem.classList.add('active');
+      
+      // Hide all sidebar contents
+      sidebarContents.forEach(content => content.classList.add('hidden'));
+      
+      // Show selected category content
+      const selectedContent = document.querySelector(`.sidebar-content[data-category="${selectedCategory}"]`);
+      if (selectedContent) {
+        selectedContent.classList.remove('hidden');
+      }
+      
+      // Update welcome screen title based on selected category
+      updateWelcomeScreen(selectedCategory);
+    });
+  });
+
+  // Update welcome screen based on selected category
+  function updateWelcomeScreen(category) {
+    const welcomeTitle = document.querySelector('#welcome-screen h1');
+    const welcomeMessage = document.querySelector('#welcome-screen p');
+    
+    const categoryTitles = {
+      'libplugin': 'Welcome to 4DSTAR Bundle Manager',
+      'libconstants': 'Welcome to 4DSTAR Constants',
+      'opat': 'Welcome to OPAT Core',
+      'serif': 'Welcome to SERiF Libraries'
+    };
+    
+    const categoryMessages = {
+      'libplugin': 'Open or create a bundle to get started.',
+      'libconstants': 'Constants tools coming soon...',
+      'opat': 'OPAT tools coming soon...',
+      'serif': 'SERiF tools coming soon...'
+    };
+    
+    if (welcomeTitle) welcomeTitle.textContent = categoryTitles[category] || 'Welcome to 4DSTAR';
+    if (welcomeMessage) welcomeMessage.textContent = categoryMessages[category] || 'Select a category to get started.';
+  }
 
   // Old modal code removed - now using tab-based interface
 
