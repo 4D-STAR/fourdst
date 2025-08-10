@@ -207,32 +207,60 @@ function setupEventListeners() {
 
   // Check if bundle is signed and show warning before bundle-modifying operations
   function checkSignatureAndWarn(operation, operationName = 'operation') {
-    console.log('checkSignatureAndWarn called for:', operationName);
-    console.log('currentBundle:', currentBundle);
-    
-    // Check if current bundle has a valid signature
     const isSigned = currentBundle && 
                     currentBundle.report && 
                     currentBundle.report.signature && 
                     currentBundle.report.signature.status && 
                     ['TRUSTED', 'UNTRUSTED'].includes(currentBundle.report.signature.status);
     
-    console.log('Bundle signature status:', currentBundle?.report?.signature?.status);
-    console.log('isSigned:', isSigned);
-    
     if (isSigned) {
-      // Bundle is signed, show warning modal
-      console.log('Bundle is signed, showing warning modal');
       pendingOperation = operation;
       signatureWarningModal.classList.remove('hidden');
       return false; // Don't execute operation immediately
     } else {
-      // Bundle is not signed, execute operation directly
-      console.log('Bundle is not signed, executing operation directly');
       operation();
       return true; // Operation executed
     }
   }
+
+  // Info Modal functionality
+  const infoBtn = document.getElementById('info-btn');
+  const infoModal = document.getElementById('info-modal');
+  const infoTabLinks = document.querySelectorAll('.info-tab-link');
+  const infoTabPanes = document.querySelectorAll('.info-tab-pane');
+  const githubLink = document.getElementById('github-link');
+
+  // Show info modal
+  infoBtn.addEventListener('click', () => {
+    infoModal.classList.remove('hidden');
+  });
+
+  // Hide info modal - make it globally accessible
+  window.hideInfoModal = function() {
+    infoModal.classList.add('hidden');
+  };
+
+  // Tab switching functionality
+  infoTabLinks.forEach(tabLink => {
+    tabLink.addEventListener('click', () => {
+      const targetTab = tabLink.getAttribute('data-tab');
+      
+      // Remove active class from all tabs and panes
+      infoTabLinks.forEach(link => link.classList.remove('active'));
+      infoTabPanes.forEach(pane => pane.classList.remove('active'));
+      
+      // Add active class to clicked tab and corresponding pane
+      tabLink.classList.add('active');
+      document.getElementById(targetTab).classList.add('active');
+    });
+  });
+
+  // GitHub link functionality
+  githubLink.addEventListener('click', (e) => {
+    e.preventDefault();
+    const { ipcRenderer } = require('electron');
+    ipcRenderer.invoke('open-external', 'https://github.com/tboudreaux/4DSTAR');
+  });
 
   // Old modal code removed - now using tab-based interface
 

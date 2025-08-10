@@ -18,6 +18,10 @@
             </nav>
             <div class="sidebar-footer">
                 <p>v1.0.0</p>
+                <button id="info-btn" class="info-button" title="About 4DSTAR">
+                    <span class="info-icon">ℹ️</span>
+                    Info
+                </button>
             </div>
         </aside>
 
@@ -156,6 +160,70 @@
             <div class="modal-actions">
                 <button id="signature-warning-cancel" class="action-button secondary">Cancel</button>
                 <button id="signature-warning-continue" class="action-button primary">Continue</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Info Modal -->
+    <div id="info-modal" class="modal-container hidden">
+        <div class="modal-content info-modal-content">
+            <div class="modal-header">
+                <h3>About 4DSTAR</h3>
+                <button class="modal-close" onclick="hideInfoModal()">&times;</button>
+            </div>
+            <div class="info-modal-body">
+                <div class="info-tab-nav">
+                    <button class="info-tab-link active" data-tab="about-info-tab">About</button>
+                    <button class="info-tab-link" data-tab="license-info-tab">License</button>
+                    <button class="info-tab-link" data-tab="funding-info-tab">Funding</button>
+                    <button class="info-tab-link" data-tab="help-info-tab">Help</button>
+                </div>
+                <div class="info-tab-content">
+                    <div id="about-info-tab" class="info-tab-pane active">
+                        <h4>4DSTAR Bundle Manager</h4>
+                        <p><strong>Author:</strong> Emily M. Boudreaux</p>
+                        <p><strong>Version:</strong> 1.0.0</p>
+                        <p><strong>Description:</strong> A modern bundle management tool for 4DSTAR stellar evolution models, providing an intuitive interface for creating, signing, validating, and filling binary bundles.</p>
+                        <div class="info-links">
+                            <a href="#" id="github-link" class="info-link">
+                                <span class="link-icon">🔗</span>
+                                View on GitHub
+                            </a>
+                        </div>
+                    </div>
+                    <div id="license-info-tab" class="info-tab-pane">
+                        <h4>License Information</h4>
+                        <p><strong>License:</strong> GNU General Public License v3.0</p>
+                        <div class="license-content">
+                            <p>This software is licensed under GPL v3. License text will be added here.</p>
+                            <textarea readonly class="license-text" placeholder="GPL v3 license text will be pasted here..."></textarea>
+                        </div>
+                    </div>
+                    <div id="funding-info-tab" class="info-tab-pane">
+                        <h4>Funding & Support</h4>
+                        <div class="funding-content">
+                            <p>Funding information placeholder - content will be added here.</p>
+                        </div>
+                    </div>
+                    <div id="help-info-tab" class="info-tab-pane">
+                        <h4>Help & Documentation</h4>
+                        <div class="help-content">
+                            <h5>Getting Started</h5>
+                            <ul>
+                                <li><strong>Open Bundle:</strong> Click "Open Bundle" to load an existing .fbundle file</li>
+                                <li><strong>Create Bundle:</strong> Click "Create Bundle" to build a new bundle from plugins</li>
+                                <li><strong>Sign Bundle:</strong> Use the Sign button to digitally sign your bundle with a PEM key</li>
+                                <li><strong>Fill Bundle:</strong> Use the Fill tab to compile and add binaries for different platforms</li>
+                            </ul>
+                            <h5>Bundle Operations</h5>
+                            <ul>
+                                <li><strong>Validate:</strong> Check bundle integrity and compatibility</li>
+                                <li><strong>Edit Metadata:</strong> Click pencil icons to edit version, author, and comments</li>
+                                <li><strong>Clear:</strong> Remove all compiled binaries from the bundle</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>

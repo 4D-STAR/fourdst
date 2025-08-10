@@ -1,9 +1,8 @@
-const { app, BrowserWindow, ipcMain, dialog, nativeTheme } = require('electron');
+const { app, BrowserWindow, ipcMain, dialog, shell, nativeTheme } = require('electron');
 const path = require('path');
-const fs = require('fs-extra');
+const { spawn } = require('child_process');
 const yaml = require('js-yaml');
 const AdmZip = require('adm-zip');
-const { spawn } = require('child_process');
 
 // Handle creating/removing shortcuts on Windows when installing/uninstalling.
 if (require('electron-squirrel-startup')) {
