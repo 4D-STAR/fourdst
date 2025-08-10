@@ -4,50 +4,15 @@ const path = require('path');
 // --- STATE ---
 let currentBundle = null;
 
-// --- DOM ELEMENTS ---
-// Views
-const welcomeScreen = document.getElementById('welcome-screen');
-const bundleView = document.getElementById('bundle-view');
-const createBundleForm = document.getElementById('create-bundle-form'); // This will be a modal later
-
-// Sidebar buttons
-const openBundleBtn = document.getElementById('open-bundle-btn');
-const createBundleBtn = document.getElementById('create-bundle-btn');
-
-// Bundle action buttons
-const signBundleBtn = document.getElementById('sign-bundle-btn');
-const validateBundleBtn = document.getElementById('validate-bundle-btn');
-// Fill button removed - Fill tab is now always visible
-const clearBundleBtn = document.getElementById('clear-bundle-btn');
-const saveMetadataBtn = document.getElementById('save-metadata-btn');
-
-// Save options modal elements
-const saveOptionsModal = document.getElementById('save-options-modal');
-const overwriteBundleBtn = document.getElementById('overwrite-bundle-btn');
-const saveAsNewBtn = document.getElementById('save-as-new-btn');
-
-// Signature warning modal elements
-const signatureWarningModal = document.getElementById('signature-warning-modal');
-const signatureWarningCancel = document.getElementById('signature-warning-cancel');
-const signatureWarningContinue = document.getElementById('signature-warning-continue');
-let pendingOperation = null; // Store the operation to execute after warning confirmation
-
-// Fill tab elements
-const fillTabLink = document.getElementById('fill-tab-link');
-const loadFillableTargetsBtn = document.getElementById('load-fillable-targets-btn');
-const fillLoading = document.getElementById('fill-loading');
-const fillPluginsTables = document.getElementById('fill-plugins-tables');
-const fillNoTargets = document.getElementById('fill-no-targets');
-const fillTargetsContent = document.getElementById('fill-targets-content');
-const selectAllTargetsBtn = document.getElementById('select-all-targets');
-const deselectAllTargetsBtn = document.getElementById('deselect-all-targets');
-const startFillProcessBtn = document.getElementById('start-fill-process');
-const fillProgressContainer = document.getElementById('fill-progress-container');
-const fillProgressContent = document.getElementById('fill-progress-content');
-
-// Bundle display
-const bundleTitle = document.getElementById('bundle-title');
-const manifestDetails = document.getElementById('manifest-details');
+// --- DOM ELEMENTS (will be initialized in DOMContentLoaded) ---
+let welcomeScreen, bundleView, createBundleForm;
+let openBundleBtn, createBundleBtn;
+let signBundleBtn, validateBundleBtn, clearBundleBtn, saveMetadataBtn;
+let saveOptionsModal, overwriteBundleBtn, saveAsNewBtn;
+let signatureWarningModal, signatureWarningCancel, signatureWarningContinue;
+let fillTabLink, loadFillableTargetsBtn, fillLoading, fillPluginsTables, fillNoTargets, fillTargetsContent;
+let selectAllTargetsBtn, deselectAllTargetsBtn, startFillProcessBtn, fillProgressContainer, fillProgressContent;
+let bundleTitle, manifestDetails;
 const pluginsList = document.getElementById('plugins-list');
 const validationResults = document.getElementById('validation-results');
 
@@ -79,8 +44,13 @@ let currentBundlePath = null;
 let hasUnsavedChanges = false;
 let originalMetadata = {};
 
+let pendingOperation = null; // Store the operation to execute after warning confirmation
+
 // --- INITIALIZATION ---
 document.addEventListener('DOMContentLoaded', async () => {
+  // Initialize DOM elements
+  initializeDOMElements();
+  
   // Set initial view
   showView('welcome-screen');
 
@@ -91,6 +61,50 @@ document.addEventListener('DOMContentLoaded', async () => {
   // Setup event listeners
   setupEventListeners();
 });
+
+function initializeDOMElements() {
+  // Views
+  welcomeScreen = document.getElementById('welcome-screen');
+  bundleView = document.getElementById('bundle-view');
+  createBundleForm = document.getElementById('create-bundle-form');
+
+  // Sidebar buttons
+  openBundleBtn = document.getElementById('open-bundle-btn');
+  createBundleBtn = document.getElementById('create-bundle-btn');
+
+  // Bundle action buttons
+  signBundleBtn = document.getElementById('sign-bundle-btn');
+  validateBundleBtn = document.getElementById('validate-bundle-btn');
+  clearBundleBtn = document.getElementById('clear-bundle-btn');
+  saveMetadataBtn = document.getElementById('save-metadata-btn');
+
+  // Save options modal elements
+  saveOptionsModal = document.getElementById('save-options-modal');
+  overwriteBundleBtn = document.getElementById('overwrite-bundle-btn');
+  saveAsNewBtn = document.getElementById('save-as-new-btn');
+
+  // Signature warning modal elements
+  signatureWarningModal = document.getElementById('signature-warning-modal');
+  signatureWarningCancel = document.getElementById('signature-warning-cancel');
+  signatureWarningContinue = document.getElementById('signature-warning-continue');
+
+  // Fill tab elements
+  fillTabLink = document.getElementById('fill-tab-link');
+  loadFillableTargetsBtn = document.getElementById('load-fillable-targets-btn');
+  fillLoading = document.getElementById('fill-loading');
+  fillPluginsTables = document.getElementById('fill-plugins-tables');
+  fillNoTargets = document.getElementById('fill-no-targets');
+  fillTargetsContent = document.getElementById('fill-targets-content');
+  selectAllTargetsBtn = document.getElementById('select-all-targets');
+  deselectAllTargetsBtn = document.getElementById('deselect-all-targets');
+  startFillProcessBtn = document.getElementById('start-fill-process');
+  fillProgressContainer = document.getElementById('fill-progress-container');
+  fillProgressContent = document.getElementById('fill-progress-content');
+
+  // Bundle display
+  bundleTitle = document.getElementById('bundle-title');
+  manifestDetails = document.getElementById('manifest-details');
+}
 
 // --- EVENT LISTENERS ---
 function setupEventListeners() {
@@ -188,6 +202,8 @@ function setupEventListeners() {
         console.log('Populating fillable targets table');
         fillTargetsContent.classList.remove('hidden');
         populateFillTargetsTable(targets);
+        // Hide the Load Available Targets button after successful load
+        loadFillableTargetsBtn.style.display = 'none';
       }
     } catch (error) {
       console.error('Error in loadFillableTargets:', error);
@@ -366,7 +382,7 @@ function setupEventListeners() {
             <td><strong>${target.triplet}</strong></td>
             <td>${target.arch}</td>
             <td><span class="target-type ${target.type}">${target.type}</span></td>
-            <td>${target.details?.compiler || 'N/A'} ${target.details?.compiler_version || ''}</td>
+            <td>${target.type === 'docker' ? 'GCC' : (target.details?.compiler || 'N/A')} ${target.details?.compiler_version || ''}</td>
           `;
           tbody.appendChild(row);
         });
@@ -515,6 +531,9 @@ function hideModal() {
 async function handleOpenBundle() {
   const bundlePath = await ipcRenderer.invoke('select-file');
   if (!bundlePath) return;
+
+  // Small delay to ensure file dialog closes properly
+  await new Promise(resolve => setTimeout(resolve, 100));
 
   showSpinner();
   showModal('Opening...', `Opening bundle: ${path.basename(bundlePath)}`);

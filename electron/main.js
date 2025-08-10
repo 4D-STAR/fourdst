@@ -16,6 +16,8 @@ const createWindow = () => {
   mainWindow = new BrowserWindow({
     width: 1200,
     height: 800,
+    minWidth: 900,
+    minHeight: 600,
     icon: path.join(__dirname, 'toolkitIcon.png'),
     webPreferences: {
       nodeIntegration: true,
