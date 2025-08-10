@@ -402,14 +402,8 @@ async function handleOpenBundle() {
 async function handleSignBundle() {
   if (!currentBundlePath) return;
 
-  const result = await ipcRenderer.invoke('select-private-key');
-  if (result.canceled || !result.filePaths.length) {
-    return; // User canceled the dialog
-  }
-  const privateKeyPath = result.filePaths[0];
-
   showSpinner();
-  const signResult = await ipcRenderer.invoke('sign-bundle', { bundlePath: currentBundlePath, privateKey: privateKeyPath });
+  const signResult = await ipcRenderer.invoke('sign-bundle', currentBundlePath);
   hideSpinner();
 
   if (signResult.success) {
