@@ -499,6 +499,7 @@ body {
 
 .fill-target-checkbox {
     margin-right: 8px;
+    border-color: var(--primary-hover);
 }
 
 .fill-actions {
@@ -576,6 +577,85 @@ body {
 .progress-status.failure {
     background-color: #fee2e2;
     color: #991b1b;
+}
+
+/* Signature Warning Modal */
+#signature-warning-modal .modal-content {
+    max-width: 500px;
+}
+
+#signature-warning-modal h2 {
+    color: #f59e0b;
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.warning-content {
+    margin-bottom: 24px;
+}
+
+.warning-content p {
+    margin-bottom: 12px;
+    line-height: 1.5;
+}
+
+.warning-content ul {
+    margin: 12px 0;
+    padding-left: 24px;
+}
+
+.warning-content li {
+    margin-bottom: 6px;
+    line-height: 1.4;
+}
+
+.modal-actions {
+    display: flex;
+    gap: 12px;
+    justify-content: flex-end;
+}
+
+.modal-actions button {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 600;
+    transition: background-color 0.2s;
+}
+
+/* Signature Warning Banner in Save Modal */
+.signature-warning-section {
+    margin-bottom: 20px;
+}
+
+.warning-banner {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 16px;
+    background-color: #fef3c7;
+    border: 1px solid #f59e0b;
+    border-radius: 8px;
+    margin-bottom: 16px;
+}
+
+.warning-icon {
+    font-size: 20px;
+    flex-shrink: 0;
+    margin-top: 2px;
+}
+
+.warning-text {
+    line-height: 1.5;
+    color: #92400e;
+}
+
+.warning-text strong {
+    color: #78350f;
 }
 
 /* Save Options Modal */

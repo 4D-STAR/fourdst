@@ -26,6 +26,12 @@ const saveOptionsModal = document.getElementById('save-options-modal');
 const overwriteBundleBtn = document.getElementById('overwrite-bundle-btn');
 const saveAsNewBtn = document.getElementById('save-as-new-btn');
 
+// Signature warning modal elements
+const signatureWarningModal = document.getElementById('signature-warning-modal');
+const signatureWarningCancel = document.getElementById('signature-warning-cancel');
+const signatureWarningContinue = document.getElementById('signature-warning-continue');
+let pendingOperation = null; // Store the operation to execute after warning confirmation
+
 // Fill tab elements
 const fillTabLink = document.getElementById('fill-tab-link');
 const loadFillableTargetsBtn = document.getElementById('load-fillable-targets-btn');
@@ -117,6 +123,20 @@ function setupEventListeners() {
   overwriteBundleBtn.addEventListener('click', () => handleSaveMetadata(false));
   saveAsNewBtn.addEventListener('click', () => handleSaveMetadata(true));
   
+  // Signature warning modal event listeners
+  signatureWarningCancel.addEventListener('click', () => {
+    signatureWarningModal.classList.add('hidden');
+    pendingOperation = null;
+  });
+  
+  signatureWarningContinue.addEventListener('click', () => {
+    signatureWarningModal.classList.add('hidden');
+    if (pendingOperation) {
+      pendingOperation();
+      pendingOperation = null;
+    }
+  });
+  
   // Load fillable targets button
   loadFillableTargetsBtn.addEventListener('click', async () => {
     await loadFillableTargets();
@@ -183,6 +203,35 @@ function setupEventListeners() {
     fillLoading.classList.add('hidden');
     fillNoTargets.classList.add('hidden');
     fillTargetsContent.classList.add('hidden');
+  }
+
+  // Check if bundle is signed and show warning before bundle-modifying operations
+  function checkSignatureAndWarn(operation, operationName = 'operation') {
+    console.log('checkSignatureAndWarn called for:', operationName);
+    console.log('currentBundle:', currentBundle);
+    
+    // Check if current bundle has a valid signature
+    const isSigned = currentBundle && 
+                    currentBundle.report && 
+                    currentBundle.report.signature && 
+                    currentBundle.report.signature.status && 
+                    ['TRUSTED', 'UNTRUSTED'].includes(currentBundle.report.signature.status);
+    
+    console.log('Bundle signature status:', currentBundle?.report?.signature?.status);
+    console.log('isSigned:', isSigned);
+    
+    if (isSigned) {
+      // Bundle is signed, show warning modal
+      console.log('Bundle is signed, showing warning modal');
+      pendingOperation = operation;
+      signatureWarningModal.classList.remove('hidden');
+      return false; // Don't execute operation immediately
+    } else {
+      // Bundle is not signed, execute operation directly
+      console.log('Bundle is not signed, executing operation directly');
+      operation();
+      return true; // Operation executed
+    }
   }
 
   // Old modal code removed - now using tab-based interface
@@ -290,25 +339,28 @@ function setupEventListeners() {
         selectedTargets[pluginName].push(target);
       });
 
-      // Hide target selection and show progress
-      fillTargetsContent.classList.add('hidden');
-      fillProgressContainer.classList.remove('hidden');
-      populateFillProgress(selectedTargets);
+      // Check for signature and warn before starting fill process
+      checkSignatureAndWarn(async () => {
+        // Hide target selection and show progress
+        fillTargetsContent.classList.add('hidden');
+        fillProgressContainer.classList.remove('hidden');
+        populateFillProgress(selectedTargets);
 
-      const result = await ipcRenderer.invoke('fill-bundle', { 
-        bundlePath: currentBundlePath, 
-        targetsToBuild: selectedTargets 
-      });
+        const result = await ipcRenderer.invoke('fill-bundle', { 
+          bundlePath: currentBundlePath, 
+          targetsToBuild: selectedTargets 
+        });
 
-      if (!result.success) {
-        const errorItem = document.createElement('div');
-        errorItem.className = 'progress-item';
-        errorItem.innerHTML = `
-          <span class="progress-status failure">Error</span>
-          <span>Fill process failed: ${result.error}</span>
-        `;
-        fillProgressContent.appendChild(errorItem);
-      }
+        if (!result.success) {
+          const errorItem = document.createElement('div');
+          errorItem.className = 'progress-item';
+          errorItem.innerHTML = `
+            <span class="progress-status failure">Error</span>
+            <span>Fill process failed: ${result.error}</span>
+          `;
+          fillProgressContent.appendChild(errorItem);
+        }
+      }, 'fill bundle');
     });
   }
 
@@ -723,7 +775,24 @@ function updateSaveButtonVisibility() {
 
 // Show save options modal
 function showSaveOptionsModal() {
-  if (!currentBundlePath || !hasUnsavedChanges) return;
+  if (!hasUnsavedChanges) {
+    return;
+  }
+  
+  // Check if bundle is signed and show warning banner
+  const signatureWarningSection = document.getElementById('signature-warning-section');
+  const isSigned = currentBundle && 
+                  currentBundle.report && 
+                  currentBundle.report.signature && 
+                  currentBundle.report.signature.status && 
+                  ['TRUSTED', 'UNTRUSTED'].includes(currentBundle.report.signature.status);
+  
+  if (isSigned) {
+    signatureWarningSection.classList.remove('hidden');
+  } else {
+    signatureWarningSection.classList.add('hidden');
+  }
+  
   saveOptionsModal.classList.remove('hidden');
 }
 

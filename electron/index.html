@@ -116,6 +116,15 @@
                 <button class="modal-close" onclick="hideSaveOptionsModal()">&times;</button>
             </div>
             <div class="modal-body">
+                <div id="signature-warning-section" class="signature-warning-section hidden">
+                    <div class="warning-banner">
+                        <span class="warning-icon">⚠️</span>
+                        <div class="warning-text">
+                            <strong>Signature Warning:</strong> This operation will invalidate the bundle's digital signature. 
+                            You will need to re-sign the bundle using the <strong>Sign</strong> button and a <strong>PEM private key</strong> file.
+                        </div>
+                    </div>
+                </div>
                 <p>How would you like to save your metadata changes?</p>
                 <div class="save-options">
                     <button id="overwrite-bundle-btn" class="save-option-btn primary">
@@ -131,18 +140,37 @@
         </div>
     </div>
 
-    <!-- Fill Modal -->
+    <!-- Signature Invalidation Warning Modal -->
+    <div id="signature-warning-modal" class="modal-container hidden">
+        <div class="modal-content">
+            <h2>⚠️ Signature Warning</h2>
+            <div class="warning-content">
+                <p><strong>This operation will invalidate the bundle's digital signature.</strong></p>
+                <p>After making changes, you will need to re-sign the bundle using:</p>
+                <ul>
+                    <li>The <strong>Sign</strong> button in the action bar</li>
+                    <li>A valid <strong>PEM private key</strong> file</li>
+                </ul>
+                <p>Do you want to continue?</p>
+            </div>
+            <div class="modal-actions">
+                <button id="signature-warning-cancel" class="action-button secondary">Cancel</button>
+                <button id="signature-warning-continue" class="action-button primary">Continue</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Fill Modal (Legacy - can be removed later) -->
     <div id="fill-modal" class="modal-container hidden">
         <div class="modal-content">
             <span class="close-fill-modal-button">&times;</span>
             <h2 id="fill-modal-title">Fill Bundle</h2>
             <div id="fill-modal-body">
-                <p>Select targets to build and add to the bundle:</p>
+                <p>Select the targets you want to build:</p>
                 <div id="fill-targets-list"></div>
-                <button id="start-fill-button" class="action-button">Start Fill</button>
+                <button id="start-fill-button">Start Fill</button>
             </div>
             <div id="fill-progress-view" style="display: none;">
-                <h3>Fill Progress:</h3>
                 <div id="fill-progress-list"></div>
             </div>
         </div>
