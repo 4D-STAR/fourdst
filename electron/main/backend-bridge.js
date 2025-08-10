@@ -6,10 +6,16 @@ const { spawn } = require('child_process');
 function runPythonCommand(command, kwargs, event) {
     const buildDir = path.resolve(__dirname, '..', '..', 'build');
     let backendPath;
+    
+    // Determine executable name based on platform
+    const executableName = process.platform === 'win32' ? 'fourdst-backend.exe' : 'fourdst-backend';
+    
     if (app.isPackaged) {
-        backendPath = path.join(process.resourcesPath, 'fourdst-backend');
+        // In packaged app, backend is in resources/backend/ directory
+        backendPath = path.join(process.resourcesPath, 'backend', executableName);
     } else {
-        backendPath = path.join(buildDir, 'electron', 'dist', 'fourdst-backend', 'fourdst-backend');
+        // In development, use the meson build output
+        backendPath = path.join(buildDir, 'electron', 'dist', 'fourdst-backend', executableName);
     }
 
     console.log(`[MAIN_PROCESS] Spawning backend: ${backendPath}`);

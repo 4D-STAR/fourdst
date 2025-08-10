@@ -2,8 +2,13 @@ const { app, BrowserWindow, ipcMain, nativeTheme } = require('electron');
 const path = require('path');
 
 // Handle creating/removing shortcuts on Windows when installing/uninstalling.
-if (require('electron-squirrel-startup')) {
-  app.quit();
+try {
+  if (require('electron-squirrel-startup')) {
+    app.quit();
+  }
+} catch (error) {
+  // electron-squirrel-startup is not available or not needed on this platform
+  console.log('electron-squirrel-startup not available, continuing...');
 }
 
 let mainWindow;

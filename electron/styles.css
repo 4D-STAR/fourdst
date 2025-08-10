@@ -504,7 +504,7 @@ body.dark-mode .info-button:hover {
   flex-direction: column;
   overflow: hidden;
   min-width: 0;
-  padding: 20px;
+  padding: 0;
 }
 
 #welcome-screen {

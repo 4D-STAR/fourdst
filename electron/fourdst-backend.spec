@@ -1,6 +1,7 @@
 # -*- mode: python ; coding: utf-8 -*-
 
 import sys
+import os
 from pathlib import Path
 
 # This is a PyInstaller spec file. It is used to bundle the Python backend
@@ -13,6 +14,15 @@ project_root = Path(SPECPATH).parent
 
 # We need to add the project root to the path so that PyInstaller can find the 'fourdst' module.
 sys.path.insert(0, str(project_root))
+
+# Platform-specific configurations
+platform = sys.platform
+print(f"Building for platform: {platform}")
+
+# Determine executable name based on platform
+exe_name = 'fourdst-backend'
+if platform == 'win32':
+    exe_name += '.exe'
 
 # The main script to be bundled.
 analysis = Analysis(['bridge.py'],
@@ -35,7 +45,7 @@ exe = EXE(pyz,
           analysis.scripts,
           [],
           exclude_binaries=True,
-          name='fourdst-backend',
+          name=exe_name,
           debug=False,
           bootloader_ignore_signals=False,
           strip=False,
