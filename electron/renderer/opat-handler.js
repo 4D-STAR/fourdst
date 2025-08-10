@@ -45,20 +45,32 @@ function initializeOPATElements() {
 
 // Initialize OPAT tab navigation
 function initializeOPATTabs() {
-    const opatTabLinks = document.querySelectorAll('.opat-tab-link');
-    const opatTabPanes = document.querySelectorAll('.opat-tab-pane');
+    // Use the correct class name that matches the HTML
+    const opatTabLinks = document.querySelectorAll('#opat-view .tab-link');
+    const opatTabPanes = document.querySelectorAll('#opat-view .tab-pane');
+    
+    console.log(`[OPAT_HANDLER] Found ${opatTabLinks.length} OPAT tab links`);
     
     opatTabLinks.forEach(link => {
         link.addEventListener('click', (e) => {
             e.preventDefault();
             const targetTab = link.dataset.tab;
+            console.log(`[OPAT_HANDLER] Tab clicked: ${targetTab}`);
             
             // Update active states
             opatTabLinks.forEach(l => l.classList.remove('active'));
-            opatTabPanes.forEach(p => p.classList.remove('active'));
+            opatTabPanes.forEach(p => {
+                p.classList.remove('active');
+                p.classList.add('hidden');
+            });
             
             link.classList.add('active');
-            document.getElementById(targetTab).classList.add('active');
+            const targetPane = document.getElementById(targetTab);
+            if (targetPane) {
+                targetPane.classList.add('active');
+                targetPane.classList.remove('hidden');
+                console.log(`[OPAT_HANDLER] Switched to tab: ${targetTab}`);
+            }
         });
     });
 }
@@ -223,9 +235,9 @@ function displayTableData(table, tag, showAll = false) {
             if (table.N_R > 50) {
                 html += '<div class="table-controls">';
                 if (!showAll) {
-                    html += `<button class="show-all-btn" onclick="displayTableData(stateManager.getOPATFile().cards.get('${opatIndexSelector.value}').tableData.get('${tag}'), '${tag}', true)">Show All ${table.N_R} Rows</button>`;
+                    html += `<button class="show-all-btn" data-tag="${tag}" data-show-all="true">Show All ${table.N_R} Rows</button>`;
                 } else {
-                    html += `<button class="show-less-btn" onclick="displayTableData(stateManager.getOPATFile().cards.get('${opatIndexSelector.value}').tableData.get('${tag}'), '${tag}', false)">Show First 50 Rows</button>`;
+                    html += `<button class="show-less-btn" data-tag="${tag}" data-show-all="false">Show First 50 Rows</button>`;
                 }
                 html += '</div>';
             }
@@ -272,6 +284,34 @@ function displayTableData(table, tag, showAll = false) {
     }
     
     opatTableDataContent.innerHTML = html;
+    
+    // Add event listeners for show all/show less buttons
+    const showAllBtns = opatTableDataContent.querySelectorAll('.show-all-btn');
+    const showLessBtns = opatTableDataContent.querySelectorAll('.show-less-btn');
+    
+    showAllBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+            const tag = btn.dataset.tag;
+            console.log(`[OPAT_HANDLER] Show all rows clicked for tag: ${tag}`);
+            const currentIndexValue = opatIndexSelector.value;
+            if (currentIndexValue && stateManager.getOPATFile()) {
+                const tableData = stateManager.getOPATFile().cards.get(currentIndexValue).tableData.get(tag);
+                displayTableData(tableData, tag, true);
+            }
+        });
+    });
+    
+    showLessBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+            const tag = btn.dataset.tag;
+            console.log(`[OPAT_HANDLER] Show less rows clicked for tag: ${tag}`);
+            const currentIndexValue = opatIndexSelector.value;
+            if (currentIndexValue && stateManager.getOPATFile()) {
+                const tableData = stateManager.getOPATFile().cards.get(currentIndexValue).tableData.get(tag);
+                displayTableData(tableData, tag, false);
+            }
+        });
+    });
     
     // Auto-switch to Data Explorer tab when displaying data
     const explorerTab = document.querySelector('[data-tab="opat-explorer-tab"]');
