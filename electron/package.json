@@ -2,7 +2,7 @@
   "name": "fourdst-bundle-manager",
   "version": "1.0.0",
   "description": "Electron app for managing fbundle archives",
-  "main": "main.js",
+  "main": "main-refactored.js",
   "scripts": {
     "start": "electron .",
     "dev": "electron .",
