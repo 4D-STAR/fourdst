@@ -207,7 +207,7 @@ function setupInfoModal() {
   
   // Info tab navigation
   infoTabLinks.forEach(link => {
-    link.addEventListener('click', (e) => {
+    link.addEventListener('click', async (e) => {
       e.preventDefault();
       const targetTab = link.dataset.tab;
       
@@ -218,6 +218,14 @@ function setupInfoModal() {
       link.classList.add('active');
       const targetPane = document.getElementById(targetTab);
       if (targetPane) targetPane.classList.add('active');
+      
+      // Load license content when license tab is clicked
+      if (targetTab === 'license-info-tab') {
+        console.log('[FRONTEND] License tab clicked, loading content...');
+        await loadLicenseContent();
+      } else {
+        console.log(`[FRONTEND] Tab clicked: ${targetTab}`);
+      }
     });
   });
   
@@ -226,7 +234,9 @@ function setupInfoModal() {
   if (githubLink) {
     githubLink.addEventListener('click', (e) => {
       e.preventDefault();
-      ipcRenderer.invoke('open-external-url', 'https://github.com/tboudreaux/4DSTAR');
+      // Get the URL from the href attribute instead of hardcoding
+      const url = githubLink.getAttribute('href');
+      ipcRenderer.invoke('open-external-url', url);
     });
   }
 }
@@ -235,6 +245,47 @@ function setupInfoModal() {
 function hideInfoModal() {
   const infoModal = document.getElementById('info-modal');
   if (infoModal) infoModal.classList.add('hidden');
+}
+
+// Load license content from LICENSE.txt file
+async function loadLicenseContent() {
+  console.log('[FRONTEND] loadLicenseContent() called');
+  const licenseTextarea = document.querySelector('.license-text');
+  console.log('[FRONTEND] License textarea found:', licenseTextarea);
+  if (!licenseTextarea) {
+    console.error('[FRONTEND] License textarea not found!');
+    return;
+  }
+  
+  // Don't reload if already loaded (not placeholder)
+  if (licenseTextarea.value && !licenseTextarea.value.includes('GPL v3 license text will be pasted here')) {
+    return;
+  }
+  
+  try {
+    console.log('[FRONTEND] Requesting license content...');
+    const result = await ipcRenderer.invoke('read-license');
+    console.log('[FRONTEND] License result:', result);
+    
+    if (result.success) {
+      console.log(`[FRONTEND] License content length: ${result.content.length} characters`);
+      console.log(`[FRONTEND] License starts with: "${result.content.substring(0, 100)}..."`);
+      console.log(`[FRONTEND] License ends with: "...${result.content.substring(result.content.length - 100)}"`);
+      
+      licenseTextarea.value = result.content;
+      licenseTextarea.placeholder = '';
+      // Scroll to the top to show the beginning of the license
+      licenseTextarea.scrollTop = 0;
+    } else {
+      licenseTextarea.value = result.content; // Fallback error message
+      licenseTextarea.placeholder = '';
+      console.error('Failed to load license:', result.error);
+    }
+  } catch (error) {
+    console.error('Error loading license content:', error);
+    licenseTextarea.value = 'Error loading license content. Please check that LICENSE.txt exists in the application directory.';
+    licenseTextarea.placeholder = '';
+  }
 }
 
 // Handle save metadata with option for save as new

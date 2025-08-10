@@ -22,8 +22,52 @@ function runPythonCommand(command, kwargs, event) {
         let errorOutput = '';
 
         process.stderr.on('data', (data) => {
-            errorOutput += data.toString();
-            console.error('Backend STDERR:', data.toString().trim());
+            const stderrChunk = data.toString();
+            errorOutput += stderrChunk;
+            console.error('Backend STDERR:', stderrChunk.trim());
+            
+            // For fill_bundle, forward stderr to frontend for terminal display
+            if (isStreaming && event && command === 'fill_bundle') {
+                // Parse stderr lines and send them as progress updates
+                const lines = stderrChunk.split('\n').filter(line => line.trim());
+                lines.forEach(line => {
+                    const trimmedLine = line.trim();
+                    
+                    // Check if this is a structured progress message
+                    if (trimmedLine.startsWith('[PROGRESS] {')) {
+                        try {
+                            // Extract JSON from [PROGRESS] prefix
+                            const jsonStr = trimmedLine.substring('[PROGRESS] '.length);
+                            const progressData = JSON.parse(jsonStr);
+                            console.log(`[MAIN_PROCESS] Parsed progress data:`, progressData);
+                            
+                            // Send as proper progress update
+                            event.sender.send('fill-bundle-progress', progressData);
+                        } catch (e) {
+                            console.error(`[MAIN_PROCESS] Failed to parse progress JSON: ${trimmedLine}`, e);
+                            // Fallback to stderr if JSON parsing fails
+                            event.sender.send('fill-bundle-progress', {
+                                type: 'stderr',
+                                stderr: trimmedLine
+                            });
+                        }
+                    } else {
+                        // Only skip very specific system messages, include everything else as stderr
+                        const shouldSkip = trimmedLine.includes('[BRIDGE_INFO]') || 
+                                         trimmedLine.includes('--- Python backend bridge') ||
+                                         trimmedLine.startsWith('[PROGRESS]') || // Skip non-JSON progress messages
+                                         trimmedLine === '';
+                        
+                        if (!shouldSkip) {
+                            console.log(`[MAIN_PROCESS] Forwarding stderr to frontend: ${trimmedLine}`);
+                            event.sender.send('fill-bundle-progress', {
+                                type: 'stderr',
+                                stderr: trimmedLine
+                            });
+                        }
+                    }
+                });
+            }
         });
 
         const isStreaming = command === 'fill_bundle';

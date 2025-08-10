@@ -99,8 +99,8 @@
                 <div class="welcome-hero">
                     <div class="welcome-logo">
                         <div class="star-icon-large">✦</div>
-                        <h1 class="welcome-title">4DSTAR</h1>
-                        <p class="welcome-subtitle">Stellar Evolution Analysis Suite</p>
+                        <h1 class="welcome-title">4DSTAR Toolbox</h1>
+                        <p class="welcome-subtitle">Toolbox for 4DSTAR related programs</p>
                     </div>
                 </div>
                 
@@ -114,7 +114,7 @@
                                 <div class="feature-icon" style="background-color: #3b82f6;">LP</div>
                                 <div class="feature-info">
                                     <h3>libplugin Bundle Manager</h3>
-                                    <p>Create, open, and manage stellar evolution bundles. Build models and analyze results.</p>
+                                    <p>Create, open, and manage plugin bundles build with libplugin.</p>
                                 </div>
                             </div>
                             
@@ -130,7 +130,7 @@
                                 <div class="feature-icon" style="background-color: #10b981;">LC</div>
                                 <div class="feature-info">
                                     <h3>libconstants</h3>
-                                    <p>Access and manage physical constants and parameters for stellar evolution calculations.</p>
+                                    <p>Access physical constants as defined in libconstants.</p>
                                 </div>
                             </div>
                             
@@ -138,7 +138,7 @@
                                 <div class="feature-icon" style="background-color: #ef4444;">SL</div>
                                 <div class="feature-info">
                                     <h3>SERiF Libraries</h3>
-                                    <p>Stellar Evolution Rapid interpolation Framework tools and utilities.</p>
+                                    <p>Under Construction....</p>
                                 </div>
                             </div>
                         </div>
@@ -162,7 +162,7 @@
                     <div class="category-hero-content">
                         <div class="category-icon-large" style="background-color: #3b82f6;">LP</div>
                         <h1 class="category-title">libplugin Bundle Manager</h1>
-                        <p class="category-subtitle">Create, manage, and analyze stellar evolution bundles</p>
+                        <p class="category-subtitle">Create, manage, and edit plugin bundles build with libplugin.</p>
                     </div>
                 </div>
                 
@@ -172,22 +172,22 @@
                         <div class="action-cards">
                             <div class="action-card">
                                 <h3>📁 Open Bundle</h3>
-                                <p>Load an existing stellar evolution bundle for analysis and modification.</p>
+                                <p>Load an existing plugin bundle for analysis and modification.</p>
                             </div>
                             <div class="action-card">
                                 <h3>➕ Create Bundle</h3>
-                                <p>Start a new stellar evolution project with custom parameters and configurations.</p>
+                                <p>Start a new plugin bundle with custom parameters and configurations.</p>
                             </div>
                             <div class="action-card">
-                                <h3>🔧 Build Models</h3>
-                                <p>Compile and execute stellar evolution calculations with your bundle settings.</p>
+                                <h3>🔧 Build Bundle</h3>
+                                <p>Compile and execute plugin bundle.</p>
                             </div>
                         </div>
                     </div>
                     
                     <div class="info-section">
                         <h3>About libplugin</h3>
-                        <p>The libplugin Bundle Manager provides a comprehensive interface for managing stellar evolution projects. Create bundles with specific initial conditions, track evolution parameters, and analyze results through integrated tools.</p>
+                        <p>The libplugin Bundle Manager provides a comprehensive interface for managing plugin bundles build with libplugin. Users can create new bundles from existing plugins, open and modify existing bundles, and build precompiled dynamic libraries for bundles for other architectures. Docker must be installed and running to build bundles for other architectures.</p>
                     </div>
                 </div>
             </div>
@@ -246,14 +246,6 @@
                                 <h3>🔢 Physical Constants</h3>
                                 <p>Access fundamental physical constants used in stellar evolution calculations.</p>
                             </div>
-                            <div class="action-card">
-                                <h3>⭐ Stellar Parameters</h3>
-                                <p>Manage stellar-specific constants and conversion factors.</p>
-                            </div>
-                            <div class="action-card">
-                                <h3>⚙️ Configuration</h3>
-                                <p>Customize constant values and units for specific research needs.</p>
-                            </div>
                         </div>
                     </div>
                     
@@ -270,7 +262,7 @@
                     <div class="category-hero-content">
                         <div class="category-icon-large" style="background-color: #ef4444;">SL</div>
                         <h1 class="category-title">SERiF Libraries</h1>
-                        <p class="category-subtitle">Stellar Evolution Rapid interpolation Framework</p>
+                        <p class="category-subtitle">Stellar Evolution and Rotation in 4D</p>
                     </div>
                 </div>
                 
@@ -279,23 +271,15 @@
                         <h2>SERiF Tools</h2>
                         <div class="action-cards">
                             <div class="action-card">
-                                <h3>🚀 Rapid Interpolation</h3>
-                                <p>High-performance interpolation algorithms for stellar evolution tracks.</p>
-                            </div>
-                            <div class="action-card">
-                                <h3>📚 Model Libraries</h3>
-                                <p>Access pre-computed stellar evolution models and isochrones.</p>
-                            </div>
-                            <div class="action-card">
-                                <h3>🔬 Analysis Framework</h3>
-                                <p>Advanced tools for stellar population synthesis and comparison studies.</p>
+                                <h3> 🔨 Under Construction</h3>
+                                <p>This page will provide a unified installer and help users get started with SERiF and related libraries.</p>
                             </div>
                         </div>
                     </div>
                     
                     <div class="info-section">
                         <h3>About SERiF</h3>
-                        <p>The Stellar Evolution Rapid interpolation Framework (SERiF) provides optimized tools for working with large stellar evolution datasets, enabling fast interpolation and analysis of stellar models.</p>
+                        <p>SERiF is a stellar structure and evolution program written in C++. This README will eventually provide guidance on how end users (i.e. non SERiF developers) can use the code. However, due to the early stage of development we are in, this README is currently intended only for developers. Its purpose is to provide an overview of the build system, development philosphy, development process, and current state of the code. Further, general information tasks which need doing will also be included (though for more detailed information on this please refer to the issue tracker or the 4DSSE project board)./p>
                     </div>
                 </div>
             </div>
@@ -498,7 +482,7 @@
                         <p><strong>Version:</strong> 1.0.0</p>
                         <p><strong>Description:</strong> A modern bundle management tool for 4DSTAR stellar evolution models, providing an intuitive interface for creating, signing, validating, and filling binary bundles.</p>
                         <div class="info-links">
-                            <a href="#" id="github-link" class="info-link">
+                            <a href="https://github.com/4D-STAR/fourdst" id="github-link" class="info-link">
                                 <span class="link-icon">🔗</span>
                                 View on GitHub
                             </a>
@@ -509,13 +493,15 @@
                         <p><strong>License:</strong> GNU General Public License v3.0</p>
                         <div class="license-content">
                             <p>This software is licensed under GPL v3. License text will be added here.</p>
-                            <textarea readonly class="license-text" placeholder="GPL v3 license text will be pasted here..."></textarea>
+                            <textarea readonly class="license-text" placeholder="placeholder..."></textarea>
                         </div>
                     </div>
                     <div id="funding-info-tab" class="info-tab-pane">
                         <h4>Funding & Support</h4>
                         <div class="funding-content">
-                            <p>Funding information placeholder - content will be added here.</p>
+                            <p>GridFire is a part of the 4D-STAR collaboration.
+
+                                4D-STAR is funded by European Research Council (ERC) under the Horizon Europe programme (Synergy Grant agreement No. 101071505: 4D-STAR) Work for this project is funded by the European Union. Views and opinions expressed are however those of the author(s) only and do not necessarily reflect those of the European Union or the European Research Council.</p>
                         </div>
                     </div>
                     <div id="help-info-tab" class="info-tab-pane">

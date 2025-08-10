@@ -1,6 +1,7 @@
-const { ipcMain, dialog } = require('electron');
+const { ipcMain, dialog, shell } = require('electron');
 const { runPythonCommand } = require('./backend-bridge');
 const fs = require('fs-extra');
+const path = require('path');
 
 const setupBundleIPCHandlers = () => {
   // Create bundle handler
@@ -118,6 +119,52 @@ const setupBundleIPCHandlers = () => {
       await fs.copy(source, destination);
       return { success: true };
     } catch (error) {
+      return { success: false, error: error.message };
+    }
+  });
+
+  // Read license file handler
+  ipcMain.handle('read-license', async () => {
+    try {
+      const licensePath = path.join(__dirname, '..', 'LICENSE.txt');
+      console.log(`[IPC_HANDLER] Reading license from: ${licensePath}`);
+      
+      // Check if file exists
+      const exists = await fs.pathExists(licensePath);
+      console.log(`[IPC_HANDLER] License file exists: ${exists}`);
+      
+      if (!exists) {
+        return { 
+          success: false, 
+          error: 'License file not found',
+          content: `License file not found at: ${licensePath}`
+        };
+      }
+      
+      const licenseContent = await fs.readFile(licensePath, 'utf8');
+      console.log(`[IPC_HANDLER] License content length: ${licenseContent.length} characters`);
+      console.log(`[IPC_HANDLER] License starts with: "${licenseContent.substring(0, 100)}..."`);
+      console.log(`[IPC_HANDLER] License ends with: "...${licenseContent.substring(licenseContent.length - 100)}"`);
+      
+      return { success: true, content: licenseContent };
+    } catch (error) {
+      console.error('Failed to read LICENSE.txt:', error);
+      return { 
+        success: false, 
+        error: 'Could not load license file',
+        content: 'GPL v3 license text could not be loaded. Please check that LICENSE.txt exists in the application directory.'
+      };
+    }
+  });
+
+  // Open external URL handler
+  ipcMain.handle('open-external-url', async (event, url) => {
+    try {
+      console.log(`[IPC_HANDLER] Opening external URL: ${url}`);
+      await shell.openExternal(url);
+      return { success: true };
+    } catch (error) {
+      console.error('Failed to open external URL:', error);
       return { success: false, error: error.message };
     }
   });

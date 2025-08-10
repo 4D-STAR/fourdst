@@ -7,6 +7,7 @@ if (require('electron-squirrel-startup')) {
 }
 
 let mainWindow;
+let themeUpdateListener;
 
 const createWindow = () => {
   // Create the browser window.
@@ -29,10 +30,34 @@ const createWindow = () => {
   // Open the DevTools for debugging
   // mainWindow.webContents.openDevTools();
 
-  nativeTheme.on('updated', () => {
-    if (mainWindow) {
-      mainWindow.webContents.send('theme-updated', { shouldUseDarkColors: nativeTheme.shouldUseDarkColors });
+  // Clean up any existing theme listener
+  if (themeUpdateListener) {
+    nativeTheme.removeListener('updated', themeUpdateListener);
+  }
+
+  // Create new theme listener with proper safety checks
+  themeUpdateListener = () => {
+    if (mainWindow && !mainWindow.isDestroyed() && mainWindow.webContents) {
+      try {
+        mainWindow.webContents.send('theme-updated', { shouldUseDarkColors: nativeTheme.shouldUseDarkColors });
+      } catch (error) {
+        console.warn('Failed to send theme update:', error.message);
+        // Remove the listener if sending fails
+        nativeTheme.removeListener('updated', themeUpdateListener);
+        themeUpdateListener = null;
+      }
     }
+  };
+
+  nativeTheme.on('updated', themeUpdateListener);
+
+  // Clean up when window is closed
+  mainWindow.on('closed', () => {
+    if (themeUpdateListener) {
+      nativeTheme.removeListener('updated', themeUpdateListener);
+      themeUpdateListener = null;
+    }
+    mainWindow = null;
   });
 };
 
