@@ -18,7 +18,11 @@
                 </div>
             </div>
             <nav class="category-nav">
-                <div class="category-item active" data-category="libplugin" title="libplugin">
+                <div class="category-item" data-category="home" title="Home">
+                    <div class="category-icon" style="background-color: #6366f1;">🏠</div>
+                    <span class="category-label">Home</span>
+                </div>
+                <div class="category-item" data-category="libplugin" title="libplugin">
                     <div class="category-icon" style="background-color: #3b82f6;">LP</div>
                     <span class="category-label">libplugin</span>
                 </div>
@@ -67,14 +71,15 @@
                 </div>
             </div>
 
-            <!-- OPAT Core content (empty for now) -->
+            <!-- OPAT Core content -->
             <div class="sidebar-content hidden" data-category="opat">
                 <div class="sidebar-header">
                     <h3>OPAT Core</h3>
                 </div>
-                <div class="empty-state">
-                    <p>OPAT tools coming soon...</p>
-                </div>
+                <nav class="sidebar-nav">
+                    <input type="file" id="opat-file-input" accept=".opat" class="opat-file-input" style="display: none;"/>
+                    <button id="opat-browse-btn" class="nav-button active">Open OPAT File</button>
+                </nav>
             </div>
 
             <!-- SERiF Libraries content (empty for now) -->
@@ -89,9 +94,254 @@
         </aside>
 
         <main class="content-area">
-            <div id="welcome-screen">
-                <h1>Welcome to 4DSTAR Bundle Manager</h1>
-                <p>Open or create a bundle to get started.</p>
+            <!-- Main Home Screen -->
+            <div id="welcome-screen" class="home-screen">
+                <div class="welcome-hero">
+                    <div class="welcome-logo">
+                        <div class="star-icon-large">✦</div>
+                        <h1 class="welcome-title">4DSTAR</h1>
+                        <p class="welcome-subtitle">Stellar Evolution Analysis Suite</p>
+                    </div>
+                </div>
+                
+                <div class="welcome-content">
+                    <div class="welcome-section">
+                        <h2>Getting Started</h2>
+                        <p>Choose a tool from the sidebar to begin your analysis:</p>
+                        
+                        <div class="feature-grid">
+                            <div class="feature-card">
+                                <div class="feature-icon" style="background-color: #3b82f6;">LP</div>
+                                <div class="feature-info">
+                                    <h3>libplugin Bundle Manager</h3>
+                                    <p>Create, open, and manage stellar evolution bundles. Build models and analyze results.</p>
+                                </div>
+                            </div>
+                            
+                            <div class="feature-card">
+                                <div class="feature-icon" style="background-color: #f59e0b;">OC</div>
+                                <div class="feature-info">
+                                    <h3>OPAT File Inspector</h3>
+                                    <p>Inspect and analyze OPAT (Opacity Table) files. View table data and explore index vectors.</p>
+                                </div>
+                            </div>
+                            
+                            <div class="feature-card">
+                                <div class="feature-icon" style="background-color: #10b981;">LC</div>
+                                <div class="feature-info">
+                                    <h3>libconstants</h3>
+                                    <p>Access and manage physical constants and parameters for stellar evolution calculations.</p>
+                                </div>
+                            </div>
+                            
+                            <div class="feature-card">
+                                <div class="feature-icon" style="background-color: #ef4444;">SL</div>
+                                <div class="feature-info">
+                                    <h3>SERiF Libraries</h3>
+                                    <p>Stellar Evolution Rapid interpolation Framework tools and utilities.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="welcome-tips">
+                        <h3>Quick Tips</h3>
+                        <ul>
+                            <li>Use the sidebar navigation to switch between different tools</li>
+                            <li>Each tool has its own dedicated workspace and features</li>
+                            <li>File operations and settings are accessible from the top menu bar</li>
+                            <li>Hover over sidebar icons for quick tool descriptions</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- libplugin Home Screen -->
+            <div id="libplugin-home" class="home-screen hidden">
+                <div class="category-hero">
+                    <div class="category-hero-content">
+                        <div class="category-icon-large" style="background-color: #3b82f6;">LP</div>
+                        <h1 class="category-title">libplugin Bundle Manager</h1>
+                        <p class="category-subtitle">Create, manage, and analyze stellar evolution bundles</p>
+                    </div>
+                </div>
+                
+                <div class="category-content">
+                    <div class="feature-section">
+                        <h2>Bundle Management</h2>
+                        <div class="action-cards">
+                            <div class="action-card">
+                                <h3>📁 Open Bundle</h3>
+                                <p>Load an existing stellar evolution bundle for analysis and modification.</p>
+                            </div>
+                            <div class="action-card">
+                                <h3>➕ Create Bundle</h3>
+                                <p>Start a new stellar evolution project with custom parameters and configurations.</p>
+                            </div>
+                            <div class="action-card">
+                                <h3>🔧 Build Models</h3>
+                                <p>Compile and execute stellar evolution calculations with your bundle settings.</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="info-section">
+                        <h3>About libplugin</h3>
+                        <p>The libplugin Bundle Manager provides a comprehensive interface for managing stellar evolution projects. Create bundles with specific initial conditions, track evolution parameters, and analyze results through integrated tools.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- OPAT Home Screen -->
+            <div id="opat-home" class="home-screen hidden">
+                <div class="category-hero">
+                    <div class="category-hero-content">
+                        <div class="category-icon-large" style="background-color: #f59e0b;">OC</div>
+                        <h1 class="category-title">OPAT File Inspector</h1>
+                        <p class="category-subtitle">Analyze opacity tables and stellar atmosphere data</p>
+                    </div>
+                </div>
+                
+                <div class="category-content">
+                    <div class="feature-section">
+                        <h2>OPAT Analysis Tools</h2>
+                        <div class="action-cards">
+                            <div class="action-card">
+                                <h3>📊 Load OPAT File</h3>
+                                <p>Import and parse OPAT (Opacity Table) files for detailed inspection.</p>
+                            </div>
+                            <div class="action-card">
+                                <h3>🔍 Explore Data</h3>
+                                <p>Navigate through index vectors and examine table structures and metadata.</p>
+                            </div>
+                            <div class="action-card">
+                                <h3>📈 View Tables</h3>
+                                <p>Display opacity data in interactive tables with full or filtered views.</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="info-section">
+                        <h3>About OPAT Files</h3>
+                        <p>OPAT (Opacity Table) files contain crucial stellar atmosphere data including opacity coefficients, temperature and density grids, and related thermodynamic properties used in stellar evolution calculations.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- libconstants Home Screen -->
+            <div id="libconstants-home" class="home-screen hidden">
+                <div class="category-hero">
+                    <div class="category-hero-content">
+                        <div class="category-icon-large" style="background-color: #10b981;">LC</div>
+                        <h1 class="category-title">libconstants</h1>
+                        <p class="category-subtitle">Physical constants and stellar parameters</p>
+                    </div>
+                </div>
+                
+                <div class="category-content">
+                    <div class="feature-section">
+                        <h2>Constants Management</h2>
+                        <div class="action-cards">
+                            <div class="action-card">
+                                <h3>🔢 Physical Constants</h3>
+                                <p>Access fundamental physical constants used in stellar evolution calculations.</p>
+                            </div>
+                            <div class="action-card">
+                                <h3>⭐ Stellar Parameters</h3>
+                                <p>Manage stellar-specific constants and conversion factors.</p>
+                            </div>
+                            <div class="action-card">
+                                <h3>⚙️ Configuration</h3>
+                                <p>Customize constant values and units for specific research needs.</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="info-section">
+                        <h3>About libconstants</h3>
+                        <p>The libconstants module provides a centralized repository of physical constants, conversion factors, and stellar parameters essential for accurate stellar evolution modeling and analysis.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SERiF Home Screen -->
+            <div id="serif-home" class="home-screen hidden">
+                <div class="category-hero">
+                    <div class="category-hero-content">
+                        <div class="category-icon-large" style="background-color: #ef4444;">SL</div>
+                        <h1 class="category-title">SERiF Libraries</h1>
+                        <p class="category-subtitle">Stellar Evolution Rapid interpolation Framework</p>
+                    </div>
+                </div>
+                
+                <div class="category-content">
+                    <div class="feature-section">
+                        <h2>SERiF Tools</h2>
+                        <div class="action-cards">
+                            <div class="action-card">
+                                <h3>🚀 Rapid Interpolation</h3>
+                                <p>High-performance interpolation algorithms for stellar evolution tracks.</p>
+                            </div>
+                            <div class="action-card">
+                                <h3>📚 Model Libraries</h3>
+                                <p>Access pre-computed stellar evolution models and isochrones.</p>
+                            </div>
+                            <div class="action-card">
+                                <h3>🔬 Analysis Framework</h3>
+                                <p>Advanced tools for stellar population synthesis and comparison studies.</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="info-section">
+                        <h3>About SERiF</h3>
+                        <p>The Stellar Evolution Rapid interpolation Framework (SERiF) provides optimized tools for working with large stellar evolution datasets, enabling fast interpolation and analysis of stellar models.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div id="opat-view" class="hidden">
+                <header class="content-header">
+                    <h2 id="opat-title">OPAT File Inspector</h2>
+                    <div class="action-buttons">
+                        <button id="opat-close-btn">Close File</button>
+                    </div>
+                </header>
+
+                <div class="tab-nav">
+                    <button class="tab-link active" data-tab="opat-overview-tab">File Information</button>
+                    <button class="tab-link" data-tab="opat-explorer-tab">Data Explorer</button>
+                </div>
+
+                <div id="opat-tab-content">
+                    <div id="opat-overview-tab" class="tab-pane active">
+                        <div id="opat-header-info" class="opat-info-content"></div>
+                        <div class="opat-info-section">
+                            <h4 class="opat-section-title">All Table Tags</h4>
+                            <ul id="opat-all-tags-list" class="opat-tags-list"></ul>
+                        </div>
+                    </div>
+
+                    <div id="opat-explorer-tab" class="tab-pane hidden">
+                        <div class="opat-info-section">
+                            <h4 class="opat-section-title">Data Card Explorer</h4>
+                            <div class="opat-selector-group">
+                                <label for="opat-index-selector" class="opat-label">Select Index Vector:</label>
+                                <select id="opat-index-selector" class="opat-select">
+                                    <option value="">-- Select an Index Vector --</option>
+                                </select>
+                            </div>
+                            <div id="opat-tables-display" class="opat-tables-display"></div>
+                        </div>
+
+                        <div class="opat-info-section">
+                            <h4 class="opat-section-title">Table Viewer</h4>
+                            <div id="opat-table-data-content" class="opat-table-viewer">
+                                <p class="opat-placeholder">Click on a table from the 'Data Card Explorer' above to view its data here.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
 
             <div id="bundle-view" class="hidden">
@@ -309,6 +559,7 @@
 
     <div id="spinner" class="spinner hidden"></div>
 
+    <script src="opatParser.js"></script>
     <script src="renderer.js"></script>
 </body>
 

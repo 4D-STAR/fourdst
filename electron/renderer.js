@@ -51,6 +51,26 @@ document.addEventListener('DOMContentLoaded', async () => {
   // Initialize DOM elements
   initializeDOMElements();
   
+  // Initialize OPAT tab navigation
+  initializeOPATTabs();
+
+  // Initialize OPAT UI elements
+  initializeOPATElements();
+
+  // Initialize home screen - set home as default active category
+  const homeCategory = document.querySelector('.category-item[data-category="home"]');
+  const secondarySidebar = document.getElementById('secondary-sidebar');
+  
+  if (homeCategory) {
+    homeCategory.classList.add('active');
+    showCategoryHomeScreen('home');
+    
+    // Hide secondary sidebar on initial load since we start with home
+    if (secondarySidebar) {
+      secondarySidebar.style.display = 'none';
+    }
+  }
+  
   // Set initial view
   showView('welcome-screen');
 
@@ -221,6 +241,8 @@ function setupEventListeners() {
     fillTargetsContent.classList.add('hidden');
   }
 
+
+
   // Check if bundle is signed and show warning before bundle-modifying operations
   function checkSignatureAndWarn(operation, operationName = 'operation') {
     const isSigned = currentBundle && 
@@ -287,6 +309,7 @@ function setupEventListeners() {
   categoryItems.forEach(categoryItem => {
     categoryItem.addEventListener('click', () => {
       const selectedCategory = categoryItem.getAttribute('data-category');
+      const secondarySidebar = document.getElementById('secondary-sidebar');
       
       // Remove active class from all category items
       categoryItems.forEach(item => item.classList.remove('active'));
@@ -297,16 +320,29 @@ function setupEventListeners() {
       // Hide all sidebar contents
       sidebarContents.forEach(content => content.classList.add('hidden'));
       
-      // Show selected category content
-      const selectedContent = document.querySelector(`.sidebar-content[data-category="${selectedCategory}"]`);
-      if (selectedContent) {
-        selectedContent.classList.remove('hidden');
+      // Show/hide secondary sidebar based on category
+      if (selectedCategory === 'home') {
+        // Hide the entire secondary sidebar on home screen
+        if (secondarySidebar) {
+          secondarySidebar.style.display = 'none';
+        }
+      } else {
+        // Show secondary sidebar and its content for other categories
+        if (secondarySidebar) {
+          secondarySidebar.style.display = 'flex';
+        }
+        const selectedContent = document.querySelector(`.sidebar-content[data-category="${selectedCategory}"]`);
+        if (selectedContent) {
+          selectedContent.classList.remove('hidden');
+        }
       }
       
-      // Update welcome screen title based on selected category
-      updateWelcomeScreen(selectedCategory);
+      // Show appropriate home screen
+      showCategoryHomeScreen(selectedCategory);
     });
   });
+
+
 
   // Update welcome screen based on selected category
   function updateWelcomeScreen(category) {
@@ -994,4 +1030,361 @@ async function reloadCurrentBundle() {
   if (result.success) {
     displayBundleInfo(result.report);
   }
+}
+
+// ===== OPAT FILE INSPECTOR LOGIC =====
+// OPAT File Inspector variables
+let currentOPATFile = null;
+let opatFileInput, opatBrowseBtn, opatView, opatCloseBtn;
+let opatHeaderInfo, opatAllTagsList, opatIndexSelector, opatTablesDisplay, opatTableDataContent;
+
+// Helper function to hide all views
+function hideAllViews() {
+  const welcomeScreen = document.getElementById('welcome-screen');
+  const libpluginHome = document.getElementById('libplugin-home');
+  const opatHome = document.getElementById('opat-home');
+  const libconstantsHome = document.getElementById('libconstants-home');
+  const serifHome = document.getElementById('serif-home');
+  const opatView = document.getElementById('opat-view');
+  const libpluginView = document.getElementById('libplugin-view');
+
+  if (welcomeScreen) welcomeScreen.classList.add('hidden');
+  if (libpluginHome) libpluginHome.classList.add('hidden');
+  if (opatHome) opatHome.classList.add('hidden');
+  if (libconstantsHome) libconstantsHome.classList.add('hidden');
+  if (serifHome) serifHome.classList.add('hidden');
+  if (opatView) opatView.classList.add('hidden');
+  if (libpluginView) libpluginView.classList.add('hidden');
+}
+
+// Show appropriate home screen based on selected category
+function showCategoryHomeScreen(category) {
+  hideAllViews();
+  
+  switch (category) {
+    case 'home':
+      const welcomeScreen = document.getElementById('welcome-screen');
+      if (welcomeScreen) welcomeScreen.classList.remove('hidden');
+      break;
+    case 'libplugin':
+      const libpluginHome = document.getElementById('libplugin-home');
+      if (libpluginHome) libpluginHome.classList.remove('hidden');
+      break;
+    case 'opat':
+      const opatHome = document.getElementById('opat-home');
+      if (opatHome) opatHome.classList.remove('hidden');
+      break;
+    case 'libconstants':
+      const libconstantsHome = document.getElementById('libconstants-home');
+      if (libconstantsHome) libconstantsHome.classList.remove('hidden');
+      break;
+    case 'serif':
+      const serifHome = document.getElementById('serif-home');
+      if (serifHome) serifHome.classList.remove('hidden');
+      break;
+    default:
+      const defaultWelcome = document.getElementById('welcome-screen');
+      if (defaultWelcome) defaultWelcome.classList.remove('hidden');
+  }
+}
+
+// Initialize OPAT UI elements in DOMContentLoaded
+function initializeOPATElements() {
+    opatFileInput = document.getElementById('opat-file-input');
+    opatBrowseBtn = document.getElementById('opat-browse-btn');
+    opatView = document.getElementById('opat-view');
+    opatCloseBtn = document.getElementById('opat-close-btn');
+    opatHeaderInfo = document.getElementById('opat-header-info');
+    opatAllTagsList = document.getElementById('opat-all-tags-list');
+    opatIndexSelector = document.getElementById('opat-index-selector');
+    opatTablesDisplay = document.getElementById('opat-tables-display');
+    opatTableDataContent = document.getElementById('opat-table-data-content');
+
+    // Event listeners
+    opatBrowseBtn.addEventListener('click', () => opatFileInput.click());
+    opatFileInput.addEventListener('change', handleOPATFileSelection);
+    opatIndexSelector.addEventListener('change', handleIndexVectorChange);
+    opatCloseBtn.addEventListener('click', closeOPATFile);
+
+    // Initialize OPAT tab navigation
+    initializeOPATTabs();
+    
+    // Add window resize listener to update table heights
+    window.updateTableHeights = function() {
+        const newHeight = Math.max(300, window.innerHeight - 450);
+        
+        // Target the main table containers
+        const containers = document.querySelectorAll('.opat-table-container');
+        containers.forEach((container, index) => {
+            container.style.setProperty('height', newHeight + 'px', 'important');
+        });
+        
+        // Also target the scroll wrappers
+        const scrollWrappers = document.querySelectorAll('.table-scroll-wrapper');
+        scrollWrappers.forEach((wrapper, index) => {
+            wrapper.style.setProperty('height', '100%', 'important');
+        });
+    };
+    
+    window.addEventListener('resize', () => {
+        console.log('Window resize event fired');
+        window.updateTableHeights();
+    });
+    
+    // Also update on initial load and when tables are displayed
+    setTimeout(window.updateTableHeights, 100);
+}
+
+function closeOPATFile() {
+    currentOPATFile = null;
+    opatFileInput.value = '';
+    resetOPATViewerState();
+    hideAllViews();
+    document.getElementById('welcome-screen').classList.remove('hidden');
+}
+
+function resetOPATViewerState() {
+    // Clear all OPAT content areas
+    if (opatHeaderInfo) opatHeaderInfo.innerHTML = '';
+    if (opatAllTagsList) opatAllTagsList.innerHTML = '';
+    if (opatIndexSelector) {
+        opatIndexSelector.innerHTML = '<option value="">-- Select an Index Vector --</option>';
+    }
+    if (opatTablesDisplay) opatTablesDisplay.innerHTML = '';
+    if (opatTableDataContent) {
+        opatTableDataContent.innerHTML = '<p class="opat-placeholder">Click on a table from the \'Data Card Explorer\' above to view its data here.</p>';
+    }
+    
+    // Reset to File Information tab
+    const opatTabLinks = document.querySelectorAll('#opat-view .tab-link');
+    const opatTabPanes = document.querySelectorAll('#opat-tab-content .tab-pane');
+    
+    opatTabLinks.forEach(link => link.classList.remove('active'));
+    opatTabPanes.forEach(pane => pane.classList.add('hidden'));
+    
+    // Activate File Information tab
+    const fileInfoTab = document.querySelector('[data-tab="opat-overview-tab"]');
+    const fileInfoPane = document.getElementById('opat-overview-tab');
+    if (fileInfoTab) fileInfoTab.classList.add('active');
+    if (fileInfoPane) fileInfoPane.classList.remove('hidden');
+}
+
+function initializeOPATTabs() {
+    const opatTabLinks = document.querySelectorAll('#opat-view .tab-link');
+    const opatTabPanes = document.querySelectorAll('#opat-tab-content .tab-pane');
+    
+    opatTabLinks.forEach(link => {
+        link.addEventListener('click', (e) => {
+            e.preventDefault();
+            const targetTab = link.getAttribute('data-tab');
+            
+            // Remove active class from all tabs and panes
+            opatTabLinks.forEach(l => l.classList.remove('active'));
+            opatTabPanes.forEach(p => p.classList.add('hidden'));
+            
+            // Add active class to clicked tab and show corresponding pane
+            link.classList.add('active');
+            document.getElementById(targetTab).classList.remove('hidden');
+        });
+    });
+}
+
+
+
+async function handleOPATFileSelection(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    try {
+        // Reset viewer state before loading new file
+        resetOPATViewerState();
+        
+        const arrayBuffer = await file.arrayBuffer();
+        currentOPATFile = parseOPAT(arrayBuffer);
+        
+        displayOPATFileInfo();
+        populateIndexSelector();
+        
+        // Show OPAT view and hide other views
+        hideAllViews();
+        opatView.classList.remove('hidden');
+        
+        // Update title with filename
+        document.getElementById('opat-title').textContent = `OPAT File Inspector - ${file.name}`;
+        
+    } catch (error) {
+        console.error('Error parsing OPAT file:', error);
+        showModal('Error', `Failed to parse OPAT file: ${error.message}`);
+    }
+}
+
+function displayOPATFileInfo() {
+    if (!currentOPATFile) return;
+    
+    const header = currentOPATFile.header;
+    opatHeaderInfo.innerHTML = `
+        <div class="opat-info-section">
+            <h4 class="opat-section-title">Header Information</h4>
+            <div class="info-grid">
+                <p><strong>Magic:</strong> ${header.magic}</p>
+                <p><strong>Version:</strong> ${header.version}</p>
+                <p><strong>Number of Tables:</strong> ${header.numTables}</p>
+                <p><strong>Header Size:</strong> ${header.headerSize} bytes</p>
+                <p><strong>Index Offset:</strong> ${header.indexOffset}</p>
+                <p><strong>Creation Date:</strong> ${header.creationDate}</p>
+                <p><strong>Source Info:</strong> ${header.sourceInfo}</p>
+                <p><strong>Comment:</strong> ${header.comment || 'None'}</p>
+                <p><strong>Number of Indices:</strong> ${header.numIndex}</p>
+                <p><strong>Hash Precision:</strong> ${header.hashPrecision}</p>
+            </div>
+        </div>
+    `;
+    
+    // Display all unique table tags
+    displayAllTableTags();
+}
+
+function displayAllTableTags() {
+    if (!currentOPATFile) return;
+    
+    const allTags = new Set();
+    for (const card of currentOPATFile.cards.values()) {
+        for (const tag of card.tableIndex.keys()) {
+            allTags.add(tag);
+        }
+    }
+    
+    opatAllTagsList.innerHTML = '';
+    Array.from(allTags).sort().forEach(tag => {
+        const li = document.createElement('li');
+        li.textContent = tag;
+        opatAllTagsList.appendChild(li);
+    });
+}
+
+function populateIndexSelector() {
+    if (!currentOPATFile) return;
+    
+    opatIndexSelector.innerHTML = '<option value="">-- Select an index vector --</option>';
+    
+    for (const [key, entry] of currentOPATFile.cardCatalog.entries()) {
+        const option = document.createElement('option');
+        option.value = key;
+        option.textContent = `[${entry.index.join(', ')}]`;
+        opatIndexSelector.appendChild(option);
+    }
+}
+
+function handleIndexVectorChange() {
+    const selectedKey = opatIndexSelector.value;
+    if (!selectedKey || !currentOPATFile) {
+        opatTablesDisplay.innerHTML = '';
+        return;
+    }
+    
+    const card = currentOPATFile.cards.get(selectedKey);
+    if (!card) return;
+    
+    opatTablesDisplay.innerHTML = '';
+    
+    for (const [tag, tableEntry] of card.tableIndex.entries()) {
+        const tableInfo = document.createElement('div');
+        tableInfo.className = 'opat-table-info';
+        tableInfo.innerHTML = `
+            <div class="opat-table-tag">${tag}</div>
+            <div class="opat-table-details">
+                Rows: ${tableEntry.numRows}, Columns: ${tableEntry.numColumns}<br>
+                Row Name: ${tableEntry.rowName}, Column Name: ${tableEntry.columnName}
+            </div>
+        `;
+        
+        tableInfo.addEventListener('click', () => {
+            const table = card.tableData.get(tag);
+            displayTableData(table, tag);
+        });
+        
+        opatTablesDisplay.appendChild(tableInfo);
+    }
+}
+
+function displayTableData(table, tag, showAll = false) {
+    if (!table) {
+        opatTableDataContent.innerHTML = '<p class="opat-placeholder">Table not found.</p>';
+        return;
+    }
+
+    let html = `<div class="opat-table-title"><span class="opat-table-tag-highlight">${tag}</span> Table Data</div>`;
+    html += `<p><strong>Dimensions:</strong> ${table.N_R} rows × ${table.N_C} columns × ${table.m_vsize} values per cell</p>`;
+    
+    if (table.N_R > 0 && table.N_C > 0) {
+        if (table.m_vsize === 0 || table.data.length === 0) {
+            html += '<p><strong>Note:</strong> This table has no data values (m_vsize = 0 or empty data array).</p>';
+            html += '<p>The table structure exists but contains no numerical data to display.</p>';
+        } else {
+            // Add show all/show less toggle buttons
+            if (table.N_R > 50) {
+                html += '<div class="table-controls">';
+                if (!showAll) {
+                    html += `<button class="show-all-btn" onclick="displayTableData(currentOPATFile.cards.get('${opatIndexSelector.value}').tableData.get('${tag}'), '${tag}', true)">Show All ${table.N_R} Rows</button>`;
+                } else {
+                    html += `<button class="show-less-btn" onclick="displayTableData(currentOPATFile.cards.get('${opatIndexSelector.value}').tableData.get('${tag}'), '${tag}', false)">Show First 50 Rows</button>`;
+                }
+                html += '</div>';
+            }
+            
+            html += '<div class="opat-table-container">';
+            html += '<div class="table-scroll-wrapper">';
+            html += '<table class="opat-data-table">';
+            
+            // Header row
+            html += '<thead><tr><th class="corner-cell"></th>';
+            for (let c = 0; c < table.N_C; c++) {
+                html += `<th>${table.columnValues[c].toFixed(3)}</th>`;
+            }
+            html += '</tr></thead>';
+            
+            // Data rows
+            html += '<tbody>';
+            const rowsToShow = showAll ? table.N_R : Math.min(table.N_R, 50);
+            for (let r = 0; r < rowsToShow; r++) {
+                html += '<tr>';
+                html += `<th class="row-header">${table.rowValues[r].toFixed(3)}</th>`;
+                for (let c = 0; c < table.N_C; c++) {
+                    try {
+                        const value = table.getValue(r, c, 0); // Get first value in cell
+                        html += `<td>${value.toFixed(6)}</td>`;
+                    } catch (error) {
+                        html += `<td>N/A</td>`;
+                    }
+                }
+                html += '</tr>';
+            }
+            html += '</tbody>';
+            html += '</table>';
+            html += '</div></div>';
+            
+            if (table.N_R > 50 && !showAll) {
+                html += `<p><em>Showing first 50 rows of ${table.N_R} total rows.</em></p>`;
+            } else if (showAll && table.N_R > 50) {
+                html += `<p><em>Showing all ${table.N_R} rows.</em></p>`;
+            }
+        }
+    } else {
+        html += '<p>No data to display.</p>';
+    }
+    
+    opatTableDataContent.innerHTML = html;
+    
+    // Auto-switch to Data Explorer tab when displaying data
+    const explorerTab = document.querySelector('[data-tab="opat-explorer-tab"]');
+    if (explorerTab) {
+        explorerTab.click();
+    }
+    
+    // Update table heights after table is rendered
+    setTimeout(() => {
+        if (window.updateTableHeights) {
+            window.updateTableHeights();
+        }
+    }, 50);
 }
