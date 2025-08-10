@@ -33,7 +33,6 @@
                     <div class="action-buttons">
                         <button id="sign-bundle-btn">Sign</button>
                         <button id="validate-bundle-btn">Validate</button>
-                        <button id="fill-bundle-btn">Fill</button>
                         <button id="clear-bundle-btn">Clear</button>
                         <button id="save-metadata-btn" class="hidden">Save Changes</button>
                     </div>
@@ -42,7 +41,8 @@
                 <div class="tab-nav">
                     <button class="tab-link active" data-tab="overview-tab">Overview</button>
                     <button class="tab-link" data-tab="plugins-tab">Plugins</button>
-                    <button class="tab-link" data-tab="validation-tab" class="hidden">Validation</button>
+                    <button class="tab-link" data-tab="fill-tab" id="fill-tab-link">Fill</button>
+                    <button class="tab-link hidden" data-tab="validation-tab">Validation</button>
                 </div>
 
                 <div id="tab-content">
@@ -54,6 +54,35 @@
                     </div>
                     <div id="validation-tab" class="tab-pane">
                         <pre id="validation-results"></pre>
+                    </div>
+                    <div id="fill-tab" class="tab-pane">
+                        <div class="fill-header">
+                            <h3>Fill Bundle with Compiled Binaries</h3>
+                            <p>Select the targets you want to build and add to the bundle:</p>
+                            <div class="fill-header-actions">
+                                <button id="load-fillable-targets-btn" class="action-button primary">Load Available Targets</button>
+                            </div>
+                        </div>
+                        <div id="fill-targets-container">
+                            <div id="fill-loading" class="hidden">
+                                <p>Loading available targets...</p>
+                            </div>
+                            <div id="fill-no-targets" class="hidden">
+                                <p>No fillable targets available. The bundle may already be complete.</p>
+                            </div>
+                            <div id="fill-targets-content" class="hidden">
+                                <div id="fill-plugins-tables"></div>
+                                <div class="fill-actions">
+                                    <button id="select-all-targets" class="action-button secondary">Select All</button>
+                                    <button id="deselect-all-targets" class="action-button secondary">Deselect All</button>
+                                    <button id="start-fill-process" class="action-button primary">Start Building</button>
+                                </div>
+                            </div>
+                        </div>
+                        <div id="fill-progress-container" class="hidden">
+                            <h4>Build Progress</h4>
+                            <div id="fill-progress-content"></div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -103,7 +132,7 @@
     </div>
 
     <!-- Fill Modal -->
-    <div id="fill-modal" class="modal">
+    <div id="fill-modal" class="modal-container hidden">
         <div class="modal-content">
             <span class="close-fill-modal-button">&times;</span>
             <h2 id="fill-modal-title">Fill Bundle</h2>

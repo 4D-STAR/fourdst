@@ -973,6 +973,10 @@ def fill_bundle(bundle_path: Path, targets_to_build: dict, progress_callback: Op
         # No fallback to print() - all output goes through callback only
 
     staging_dir = Path(tempfile.mkdtemp(prefix="fourdst_fill_"))
+    successful_builds = 0
+    failed_builds = 0
+    build_details = []
+    
     try:
         report_progress("Unpacking bundle to temporary directory...")
         with zipfile.ZipFile(bundle_path, 'r') as bundle_zip:
@@ -1026,6 +1030,14 @@ def fill_bundle(bundle_path: Path, targets_to_build: dict, progress_callback: Op
                     }
                     plugin_info.setdefault('binaries', []).append(new_binary_entry)
 
+                    successful_builds += 1
+                    build_details.append({
+                        'plugin': plugin_name,
+                        'target': target_triplet,
+                        'status': 'success',
+                        'filename': tagged_filename
+                    })
+                    
                     report_progress({
                         'status': 'success',
                         'plugin': plugin_name,
@@ -1034,6 +1046,14 @@ def fill_bundle(bundle_path: Path, targets_to_build: dict, progress_callback: Op
                     })
 
                 except Exception as e:
+                    failed_builds += 1
+                    build_details.append({
+                        'plugin': plugin_name,
+                        'target': target_triplet,
+                        'status': 'failure',
+                        'error': str(e)
+                    })
+                    
                     report_progress({
                         'status': 'failure',
                         'plugin': plugin_name,

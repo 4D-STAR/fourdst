@@ -17,7 +17,7 @@ const createBundleBtn = document.getElementById('create-bundle-btn');
 // Bundle action buttons
 const signBundleBtn = document.getElementById('sign-bundle-btn');
 const validateBundleBtn = document.getElementById('validate-bundle-btn');
-const fillBundleBtn = document.getElementById('fill-bundle-btn');
+// Fill button removed - Fill tab is now always visible
 const clearBundleBtn = document.getElementById('clear-bundle-btn');
 const saveMetadataBtn = document.getElementById('save-metadata-btn');
 
@@ -25,6 +25,19 @@ const saveMetadataBtn = document.getElementById('save-metadata-btn');
 const saveOptionsModal = document.getElementById('save-options-modal');
 const overwriteBundleBtn = document.getElementById('overwrite-bundle-btn');
 const saveAsNewBtn = document.getElementById('save-as-new-btn');
+
+// Fill tab elements
+const fillTabLink = document.getElementById('fill-tab-link');
+const loadFillableTargetsBtn = document.getElementById('load-fillable-targets-btn');
+const fillLoading = document.getElementById('fill-loading');
+const fillPluginsTables = document.getElementById('fill-plugins-tables');
+const fillNoTargets = document.getElementById('fill-no-targets');
+const fillTargetsContent = document.getElementById('fill-targets-content');
+const selectAllTargetsBtn = document.getElementById('select-all-targets');
+const deselectAllTargetsBtn = document.getElementById('deselect-all-targets');
+const startFillProcessBtn = document.getElementById('start-fill-process');
+const fillProgressContainer = document.getElementById('fill-progress-container');
+const fillProgressContent = document.getElementById('fill-progress-content');
 
 // Bundle display
 const bundleTitle = document.getElementById('bundle-title');
@@ -103,160 +116,230 @@ function setupEventListeners() {
   saveMetadataBtn.addEventListener('click', showSaveOptionsModal);
   overwriteBundleBtn.addEventListener('click', () => handleSaveMetadata(false));
   saveAsNewBtn.addEventListener('click', () => handleSaveMetadata(true));
-  fillBundleBtn.addEventListener('click', async () => {
+  
+  // Load fillable targets button
+  loadFillableTargetsBtn.addEventListener('click', async () => {
+    await loadFillableTargets();
+  });
+  // Load fillable targets for the Fill tab
+  async function loadFillableTargets() {
+    console.log('loadFillableTargets called, currentBundlePath:', currentBundlePath);
+    
+    // Check if required DOM elements exist
+    if (!fillNoTargets || !fillTargetsContent || !fillLoading) {
+      console.error('Fill tab DOM elements not found');
+      showModal('Error', 'Fill tab interface not properly initialized.');
+      return;
+    }
+    
     if (!currentBundlePath) {
-      showModal('Error', 'No bundle is currently open.');
+      console.log('No bundle path, showing no targets message');
+      hideAllFillStates();
+      fillNoTargets.classList.remove('hidden');
       return;
     }
-    showSpinner();
-    const result = await ipcRenderer.invoke('get-fillable-targets', currentBundlePath);
-    hideSpinner();
+    
+    try {
+      // Show loading state
+      hideAllFillStates();
+      fillLoading.classList.remove('hidden');
+      loadFillableTargetsBtn.disabled = true;
+      
+      console.log('Calling get-fillable-targets...');
+      const result = await ipcRenderer.invoke('get-fillable-targets', currentBundlePath);
+      console.log('get-fillable-targets result:', result);
 
-    if (!result.success) {
-      showModal('Error', `Failed to get fillable targets: ${result.error}`);
-      return;
-    }
-
-    const targets = result.data;
-    if (Object.keys(targets).length === 0) {
-      showModal('Info', 'The bundle is already full. No new targets to build.');
-      return;
-    }
-
-    populateFillTargetsList(targets);
-    fillModal.style.display = 'block';
-  });
-
-  closeFillModalButton.addEventListener('click', () => {
-    fillModal.style.display = 'none';
-  });
-
-  function populateFillTargetsList(plugins) {
-    fillTargetsList.innerHTML = '';
-    for (const [pluginName, targets] of Object.entries(plugins)) {
-      if (targets.length > 0) {
-        const pluginHeader = document.createElement('h4');
-        pluginHeader.textContent = `Plugin: ${pluginName}`;
-        fillTargetsList.appendChild(pluginHeader);
-
-        targets.forEach(target => {
-          const item = document.createElement('div');
-          item.className = 'fill-target-item';
-          const checkbox = document.createElement('input');
-          checkbox.type = 'checkbox';
-          checkbox.checked = true;
-          checkbox.id = `target-${pluginName}-${target.triplet}`;
-          checkbox.dataset.pluginName = pluginName;
-          checkbox.dataset.targetTriplet = target.triplet;
-          checkbox.dataset.targetInfo = JSON.stringify(target);
-
-          const label = document.createElement('label');
-          label.htmlFor = checkbox.id;
-          label.textContent = `${target.triplet} (${target.type})`;
-
-          item.appendChild(checkbox);
-          item.appendChild(label);
-          fillTargetsList.appendChild(item);
-        });
+      if (!result.success) {
+        console.log('get-fillable-targets failed:', result.error);
+        hideAllFillStates();
+        showModal('Error', `Failed to load fillable targets: ${result.error}`);
+        return;
       }
+
+      const targets = result.data;
+      console.log('Fillable targets:', targets);
+      
+      hideAllFillStates();
+      
+      if (!targets || Object.keys(targets).length === 0) {
+        console.log('No fillable targets found');
+        fillNoTargets.classList.remove('hidden');
+      } else {
+        console.log('Populating fillable targets table');
+        fillTargetsContent.classList.remove('hidden');
+        populateFillTargetsTable(targets);
+      }
+    } catch (error) {
+      console.error('Error in loadFillableTargets:', error);
+      hideAllFillStates();
+      showModal('Error', `Error loading fillable targets: ${error.message}`);
+    } finally {
+      loadFillableTargetsBtn.disabled = false;
     }
-    // Reset view
-    fillModalBody.style.display = 'block';
-    fillProgressView.style.display = 'none';
+  }
+  
+  // Helper function to hide all fill tab states
+  function hideAllFillStates() {
+    fillLoading.classList.add('hidden');
+    fillNoTargets.classList.add('hidden');
+    fillTargetsContent.classList.add('hidden');
   }
 
-  startFillButton.addEventListener('click', async () => {
-    const selectedTargets = {};
-    const checkboxes = fillTargetsList.querySelectorAll('input[type="checkbox"]:checked');
+  // Old modal code removed - now using tab-based interface
 
-    if (checkboxes.length === 0) {
-      showModal('Info', 'No targets selected to fill.');
-      return;
-    }
-
-    checkboxes.forEach(cb => {
-      const pluginName = cb.dataset.pluginName;
-      if (!selectedTargets[pluginName]) {
-        selectedTargets[pluginName] = [];
-      }
-      selectedTargets[pluginName].push(JSON.parse(cb.dataset.targetInfo));
-    });
-
-    fillModalBody.style.display = 'none';
-    fillProgressView.style.display = 'block';
-    fillModalTitle.textContent = 'Filling Bundle...';
-    populateFillProgressList(selectedTargets);
-
-    const result = await ipcRenderer.invoke('fill-bundle', { 
-      bundlePath: currentBundlePath, 
-      targetsToBuild: selectedTargets 
-    });
-
-    fillModalTitle.textContent = 'Fill Complete';
-    if (!result.success) {
-      // A final error message if the whole process fails.
-      const p = document.createElement('p');
-      p.style.color = 'var(--error-color)';
-      p.textContent = `Error: ${result.error}`;
-      fillProgressList.appendChild(p);
-    }
-  });
-
-  function populateFillProgressList(plugins) {
-    fillProgressList.innerHTML = '';
+  // Create modern table-based interface for fillable targets
+  function populateFillTargetsTable(plugins) {
+    fillPluginsTables.innerHTML = '';
+    
     for (const [pluginName, targets] of Object.entries(plugins)) {
-      targets.forEach(target => {
-        const item = document.createElement('div');
-        item.className = 'fill-target-item';
-        item.id = `progress-${pluginName}-${target.triplet}`;
-
-        const indicator = document.createElement('div');
-        indicator.className = 'progress-indicator';
+      if (targets.length > 0) {
+        // Create plugin table container
+        const pluginTable = document.createElement('div');
+        pluginTable.className = 'fill-plugin-table';
         
-        const label = document.createElement('span');
-        label.textContent = `${pluginName} - ${target.triplet}`;
+        // Plugin header
+        const pluginHeader = document.createElement('div');
+        pluginHeader.className = 'fill-plugin-header';
+        pluginHeader.textContent = `${pluginName} (${targets.length} target${targets.length > 1 ? 's' : ''})`;
+        pluginTable.appendChild(pluginHeader);
+        
+        // Create table
+        const table = document.createElement('table');
+        table.className = 'fill-targets-table';
+        
+        // Table header
+        const thead = document.createElement('thead');
+        thead.innerHTML = `
+          <tr>
+            <th style="width: 50px;">
+              <input type="checkbox" class="plugin-select-all" data-plugin="${pluginName}" checked>
+            </th>
+            <th>Target Platform</th>
+            <th>Architecture</th>
+            <th>Type</th>
+            <th>Compiler</th>
+          </tr>
+        `;
+        table.appendChild(thead);
+        
+        // Table body
+        const tbody = document.createElement('tbody');
+        targets.forEach(target => {
+          const row = document.createElement('tr');
+          row.innerHTML = `
+            <td>
+              <input type="checkbox" class="fill-target-checkbox" 
+                     data-plugin="${pluginName}" 
+                     data-target='${JSON.stringify(target)}' 
+                     checked>
+            </td>
+            <td><strong>${target.triplet}</strong></td>
+            <td>${target.arch}</td>
+            <td><span class="target-type ${target.type}">${target.type}</span></td>
+            <td>${target.details?.compiler || 'N/A'} ${target.details?.compiler_version || ''}</td>
+          `;
+          tbody.appendChild(row);
+        });
+        table.appendChild(tbody);
+        
+        pluginTable.appendChild(table);
+        fillPluginsTables.appendChild(pluginTable);
+      }
+    }
+    
+    // Add event listeners for select all functionality
+    setupFillTargetEventListeners();
+  }
 
-        item.appendChild(indicator);
-        item.appendChild(label);
-        fillProgressList.appendChild(item);
+  // Setup event listeners for Fill tab functionality
+  function setupFillTargetEventListeners() {
+    // Plugin-level select all checkboxes
+    document.querySelectorAll('.plugin-select-all').forEach(checkbox => {
+      checkbox.addEventListener('change', (e) => {
+        const pluginName = e.target.dataset.plugin;
+        const pluginCheckboxes = document.querySelectorAll(`.fill-target-checkbox[data-plugin="${pluginName}"]`);
+        pluginCheckboxes.forEach(cb => cb.checked = e.target.checked);
+      });
+    });
+
+    // Global select/deselect all buttons
+    selectAllTargetsBtn.addEventListener('click', () => {
+      document.querySelectorAll('.fill-target-checkbox, .plugin-select-all').forEach(cb => cb.checked = true);
+    });
+
+    deselectAllTargetsBtn.addEventListener('click', () => {
+      document.querySelectorAll('.fill-target-checkbox, .plugin-select-all').forEach(cb => cb.checked = false);
+    });
+
+    // Start fill process button
+    startFillProcessBtn.addEventListener('click', async () => {
+      const selectedTargets = {};
+      const checkboxes = document.querySelectorAll('.fill-target-checkbox:checked');
+
+      if (checkboxes.length === 0) {
+        showModal('Info', 'No targets selected to fill.');
+        return;
+      }
+
+      checkboxes.forEach(cb => {
+        const pluginName = cb.dataset.plugin;
+        const target = JSON.parse(cb.dataset.target);
+        if (!selectedTargets[pluginName]) {
+          selectedTargets[pluginName] = [];
+        }
+        selectedTargets[pluginName].push(target);
+      });
+
+      // Hide target selection and show progress
+      fillTargetsContent.classList.add('hidden');
+      fillProgressContainer.classList.remove('hidden');
+      populateFillProgress(selectedTargets);
+
+      const result = await ipcRenderer.invoke('fill-bundle', { 
+        bundlePath: currentBundlePath, 
+        targetsToBuild: selectedTargets 
+      });
+
+      if (!result.success) {
+        const errorItem = document.createElement('div');
+        errorItem.className = 'progress-item';
+        errorItem.innerHTML = `
+          <span class="progress-status failure">Error</span>
+          <span>Fill process failed: ${result.error}</span>
+        `;
+        fillProgressContent.appendChild(errorItem);
+      }
+    });
+  }
+
+  // Create progress display for fill process
+  function populateFillProgress(selectedTargets) {
+    fillProgressContent.innerHTML = '';
+    
+    for (const [pluginName, targets] of Object.entries(selectedTargets)) {
+      targets.forEach(target => {
+        const progressItem = document.createElement('div');
+        progressItem.className = 'progress-item';
+        progressItem.id = `progress-${pluginName}-${target.triplet}`;
+        progressItem.innerHTML = `
+          <span class="progress-status building">Building</span>
+          <span>${pluginName} - ${target.triplet}</span>
+        `;
+        fillProgressContent.appendChild(progressItem);
       });
     }
   }
 
+  // Handle progress updates from backend
   ipcRenderer.on('fill-bundle-progress', (event, progress) => {
-    console.log('Progress update:', progress);
     if (typeof progress === 'object' && progress.status) {
-      const { status, plugin, target, message } = progress;
+      const { status, plugin, target } = progress;
       const progressItem = document.getElementById(`progress-${plugin}-${target}`);
       if (progressItem) {
-        const indicator = progressItem.querySelector('.progress-indicator');
-        indicator.className = 'progress-indicator'; // Reset classes
-        switch (status) {
-          case 'building':
-            indicator.classList.add('spinner-icon');
-            break;
-          case 'success':
-            indicator.classList.add('success-icon');
-            break;
-          case 'failure':
-            indicator.classList.add('failure-icon');
-            break;
-        }
-        const label = progressItem.querySelector('span');
-        if (message) {
-          label.textContent = `${plugin} - ${target}: ${message}`;
-        }
+        const statusSpan = progressItem.querySelector('.progress-status');
+        statusSpan.className = `progress-status ${status}`;
+        statusSpan.textContent = status.charAt(0).toUpperCase() + status.slice(1);
       }
-    } else if (typeof progress === 'object' && progress.message) {
-      // Handle final completion message
-      if (progress.message.includes('✅')) {
-        fillModalTitle.textContent = 'Fill Complete!';
-      }
-    } else {
-      // Handle simple string progress messages
-      const p = document.createElement('p');
-      p.textContent = progress;
-      fillProgressList.appendChild(p);
     }
   });
 }
@@ -511,6 +594,13 @@ function displayBundleInfo(report) {
     validationResults.textContent = 'Bundle is valid.';
     validationTabLink.classList.add('hidden');
   }
+  
+  // Temporarily disabled to fix bundle opening hang
+  // TODO: Re-enable after debugging fillable targets functionality
+  // loadFillableTargets().catch(error => {
+  //   console.error('Failed to load fillable targets:', error);
+  //   // Don't block bundle opening if fill targets fail to load
+  // });
   
   // Reset to overview tab by default
   switchTab('overview-tab');
