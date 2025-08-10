@@ -12,6 +12,7 @@ const uiComponents = require('./renderer/ui-components');
 const eventHandlers = require('./renderer/event-handlers');
 const opatHandler = require('./renderer/opat-handler');
 const fillWorkflow = require('./renderer/fill-workflow');
+const opatPlotting = require('./renderer/opat-plotting');
 
 // Initialize all modules with their dependencies
 function initializeModules() {
@@ -23,7 +24,8 @@ function initializeModules() {
     uiComponents,
     eventHandlers,
     opatHandler,
-    fillWorkflow
+    fillWorkflow,
+    opatPlotting
   };
   
   // Initialize each module with its dependencies
@@ -32,6 +34,7 @@ function initializeModules() {
   eventHandlers.initializeDependencies(deps);
   opatHandler.initializeDependencies(deps);
   fillWorkflow.initializeDependencies(deps);
+  opatPlotting.initializePlottingDependencies(deps);
   
   console.log('[RENDERER] All modules initialized with dependencies');
 }
@@ -84,5 +87,6 @@ window.uiComponents = uiComponents;
 window.eventHandlers = eventHandlers;
 window.opatHandler = opatHandler;
 window.fillWorkflow = fillWorkflow;
+window.opatPlotting = opatPlotting;
 
 // === REGENERATED CODE END ===

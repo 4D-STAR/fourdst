@@ -1931,6 +1931,145 @@ body.dark-mode .info-tab-pane a {
   flex-direction: column;
 }
 
+/* OPAT Plotting Tab Styling */
+.plot-controls {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.plot-control-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+
+@media (max-width: 768px) {
+  .plot-control-row {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+}
+
+.plot-control-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.opat-input {
+  padding: 8px 12px;
+  background: white;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  color: #374151;
+  transition: border-color 0.2s ease;
+}
+
+.opat-input:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1);
+}
+
+body.dark-mode .opat-input {
+  background: #4b5563;
+  border: 1px solid #6b7280;
+  color: #f3f4f6;
+}
+
+body.dark-mode .opat-input:focus {
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
+}
+
+.plot-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: flex-start;
+  align-items: center;
+  padding-top: 16px;
+  border-top: 1px solid #e5e7eb;
+}
+
+body.dark-mode .plot-actions {
+  border-top: 1px solid #4b5563;
+}
+
+.plot-container {
+  min-height: 500px;
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  overflow: hidden;
+  position: relative;
+}
+
+body.dark-mode .plot-container {
+  background: #374151;
+  border: 1px solid #4b5563;
+}
+
+.plot-placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 500px;
+  color: #9ca3af;
+  font-style: italic;
+  text-align: center;
+  padding: 20px;
+}
+
+body.dark-mode .plot-placeholder {
+  color: #6b7280;
+}
+
+.plot-display {
+  width: 100%;
+  height: 500px;
+}
+
+/* Plotly.js theme integration */
+.plot-display .plotly {
+  background-color: transparent !important;
+}
+
+body.dark-mode .plot-display .plotly {
+  background-color: transparent !important;
+}
+
+/* Custom plotly toolbar styling */
+.plot-display .modebar {
+  background: rgba(255, 255, 255, 0.9) !important;
+  border-radius: 6px !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1) !important;
+  border: 1px solid #e5e7eb !important;
+}
+
+body.dark-mode .plot-display .modebar {
+  background: rgba(55, 65, 81, 0.9) !important;
+  border: 1px solid #4b5563 !important;
+}
+
+.plot-display .modebar-btn {
+  color: #374151 !important;
+}
+
+body.dark-mode .plot-display .modebar-btn {
+  color: #f3f4f6 !important;
+}
+
+.plot-display .modebar-btn:hover {
+  background: rgba(59, 130, 246, 0.1) !important;
+}
+
+body.dark-mode .plot-display .modebar-btn:hover {
+  background: rgba(59, 130, 246, 0.2) !important;
+}
+
 .opat-table-container {
   flex: 1;
   display: flex;

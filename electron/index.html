@@ -42,7 +42,7 @@
             <div class="primary-sidebar-footer">
                 <div class="version-info">v1.0.0</div>
                 <button id="info-btn" class="info-button" title="About 4DSTAR">
-                    <span class="info-icon">ℹ️</span>
+                    <span class="info-icon">ⓘ</span>
                     <span class="info-label">Info</span>
                 </button>
             </div>
@@ -295,6 +295,7 @@
                 <div class="tab-nav">
                     <button class="tab-link active" data-tab="opat-overview-tab">File Information</button>
                     <button class="tab-link" data-tab="opat-explorer-tab">Data Explorer</button>
+                    <button class="tab-link" data-tab="opat-plotting-tab">Plotting</button>
                 </div>
 
                 <div id="opat-tab-content">
@@ -322,6 +323,72 @@
                             <h4 class="opat-section-title">Table Viewer</h4>
                             <div id="opat-table-data-content" class="opat-table-viewer">
                                 <p class="opat-placeholder">Click on a table from the 'Data Card Explorer' above to view its data here.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="opat-plotting-tab" class="tab-pane hidden">
+                        <div class="opat-info-section">
+                            <h4 class="opat-section-title">Plot Configuration</h4>
+                            <div class="plot-controls">
+                                <div class="plot-control-row">
+                                    <div class="plot-control-group">
+                                        <label for="plot-index-selector" class="opat-label">Index Vector:</label>
+                                        <select id="plot-index-selector" class="opat-select">
+                                            <option value="">-- Select an Index Vector --</option>
+                                        </select>
+                                    </div>
+                                    <div class="plot-control-group">
+                                        <label for="plot-table-selector" class="opat-label">Data Table:</label>
+                                        <select id="plot-table-selector" class="opat-select">
+                                            <option value="">-- Select a Table --</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="plot-control-row">
+                                    <div class="plot-control-group">
+                                        <label for="plot-x-axis" class="opat-label">X-Axis:</label>
+                                        <select id="plot-x-axis" class="opat-select">
+                                            <option value="">-- Select X Variable --</option>
+                                        </select>
+                                    </div>
+                                    <div class="plot-control-group">
+                                        <label for="plot-y-axis" class="opat-label">Y-Axis:</label>
+                                        <select id="plot-y-axis" class="opat-select">
+                                            <option value="">-- Select Y Variable --</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="plot-control-row">
+                                    <div class="plot-control-group">
+                                        <label for="plot-type" class="opat-label">Plot Type:</label>
+                                        <select id="plot-type" class="opat-select">
+                                            <option value="scatter">Scatter Plot</option>
+                                            <option value="line">Line Plot</option>
+                                            <option value="heatmap">Heatmap</option>
+                                            <option value="contour">Contour Plot</option>
+                                        </select>
+                                    </div>
+                                    <div class="plot-control-group">
+                                        <label for="plot-title" class="opat-label">Plot Title:</label>
+                                        <input type="text" id="plot-title" class="opat-input" placeholder="Enter plot title">
+                                    </div>
+                                </div>
+                                <div class="plot-actions">
+                                    <button id="create-plot-btn" class="action-button primary">Create Plot</button>
+                                    <button id="save-plot-btn" class="action-button secondary" disabled>Save as PNG</button>
+                                    <button id="clear-plot-btn" class="action-button secondary" disabled>Clear Plot</button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="opat-info-section">
+                            <h4 class="opat-section-title">Plot Display</h4>
+                            <div id="plot-container" class="plot-container">
+                                <div id="plot-placeholder" class="plot-placeholder">
+                                    <p>Configure your plot settings above and click "Create Plot" to generate a visualization.</p>
+                                </div>
+                                <div id="plot-display" class="plot-display hidden"></div>
                             </div>
                         </div>
                     </div>
@@ -546,6 +613,7 @@
     <div id="spinner" class="spinner hidden"></div>
 
     <script src="opatParser.js"></script>
+    <script src="node_modules/plotly.js-dist/plotly.js"></script>
     <script src="renderer-refactored.js"></script>
 </body>
 

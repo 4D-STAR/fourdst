@@ -2,7 +2,7 @@
 // Extracted from renderer.js to centralize OPAT file parsing and display logic
 
 // Import dependencies (these will be injected when integrated)
-let stateManager, domManager;
+let stateManager, domManager, opatPlotting;
 
 // OPAT File Inspector variables
 let opatFileInput, opatBrowseBtn, opatView, opatCloseBtn;
@@ -28,6 +28,11 @@ function initializeOPATElements() {
 
     // Initialize OPAT tab navigation
     initializeOPATTabs();
+    
+    // Initialize plotting elements if module is available
+    if (opatPlotting) {
+        opatPlotting.initializePlottingElements();
+    }
     
     // Add window resize listener to update table heights
     window.updateTableHeights = function() {
@@ -82,6 +87,11 @@ function resetOPATViewerState() {
     if (opatIndexSelector) opatIndexSelector.innerHTML = '<option value="">-- Select an index vector --</option>';
     if (opatTablesDisplay) opatTablesDisplay.innerHTML = '';
     if (opatTableDataContent) opatTableDataContent.innerHTML = '';
+    
+    // Reset plotting state if module is available
+    if (opatPlotting) {
+        opatPlotting.resetPlottingState();
+    }
 }
 
 // Handle OPAT file selection
@@ -100,21 +110,24 @@ async function handleOPATFileSelection(event) {
         stateManager.setOPATFile(currentOPATFile);
         
         displayOPATFileInfo();
+        displayAllTableTags();
         populateIndexSelector();
         
-        // Show OPAT view and hide other views
+        // Populate plotting selectors if module is available
+        if (opatPlotting) {
+            opatPlotting.populatePlotIndexSelector();
+        }
+        
+        // Show OPAT view
         hideAllViews();
         opatView.classList.remove('hidden');
         
-        // Update title with filename
-        document.getElementById('opat-title').textContent = `OPAT File Inspector - ${file.name}`;
-        
         domManager.hideSpinner();
-        
+        console.log('OPAT file loaded successfully');
     } catch (error) {
-        console.error('Error parsing OPAT file:', error);
+        console.error('Error loading OPAT file:', error);
         domManager.hideSpinner();
-        domManager.showModal('Error', `Failed to parse OPAT file: ${error.message}`);
+        alert('Error loading OPAT file: ' + error.message);
     }
 }
 
@@ -376,6 +389,7 @@ function showCategoryHomeScreen(category) {
 function initializeDependencies(deps) {
     stateManager = deps.stateManager;
     domManager = deps.domManager;
+    opatPlotting = deps.opatPlotting;
 }
 
 module.exports = {
