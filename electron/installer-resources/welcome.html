@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            font-size: 13px;
+            line-height: 1.4;
+            margin: 20px;
+            color: #333;
+        }
+        h1 {
+            color: #1d4ed8;
+            font-size: 18px;
+            margin-bottom: 15px;
+        }
+        h2 {
+            color: #374151;
+            font-size: 14px;
+            margin-top: 20px;
+            margin-bottom: 10px;
+        }
+        .highlight {
+            background-color: #fef3c7;
+            padding: 10px;
+            border-radius: 6px;
+            border-left: 4px solid #f59e0b;
+            margin: 15px 0;
+        }
+        .requirement {
+            background-color: #f0f9ff;
+            padding: 10px;
+            border-radius: 6px;
+            border-left: 4px solid #3b82f6;
+            margin: 10px 0;
+        }
+        .requirement-title {
+            font-weight: bold;
+            color: #1e40af;
+        }
+        ul {
+            margin: 10px 0;
+            padding-left: 20px;
+        }
+        li {
+            margin: 5px 0;
+        }
+        .version {
+            font-family: 'SF Mono', Monaco, monospace;
+            background-color: #f3f4f6;
+            padding: 2px 4px;
+            border-radius: 3px;
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Welcome to 4DSTAR Bundle Manager</h1>
+    
+    <p>This installer will install the 4DSTAR Bundle Manager, a comprehensive tool for managing 4DSTAR plugin bundles and OPAT data files.</p>
+    
+    <div class="highlight">
+        <strong>What's Included:</strong>
+        <ul>
+            <li>4DSTAR Bundle Manager application</li>
+            <li>File associations for .fbundle and .opat files</li>
+            <li>Custom file icons for associated file types</li>
+            <li>Automatic Launch Services refresh</li>
+        </ul>
+    </div>
+    
+    <h2>System Requirements</h2>
+    <p>The 4DSTAR Bundle Manager has different requirements depending on how you plan to use it:</p>
+    
+    <div class="requirement">
+        <div class="requirement-title">Basic Usage (Bundle Viewing & Management)</div>
+        <ul>
+            <li>macOS 10.12 or later</li>
+            <li>No additional dependencies required</li>
+        </ul>
+    </div>
+    
+    <div class="requirement">
+        <div class="requirement-title">Plugin Building (Advanced)</div>
+        <p>If you plan to build plugins from source, you'll need:</p>
+        <ul>
+            <li><strong>Docker Desktop:</strong> Required for cross-platform plugin builds</li>
+            <li><strong>Meson Build System:</strong> Required for native plugin compilation</li>
+            <li><strong>C++ Compiler:</strong> Xcode Command Line Tools or equivalent</li>
+        </ul>
+    </div>
+    
+    <h2>Optional Dependencies</h2>
+    <p>These tools are <strong>not required</strong> for basic bundle management, but enable advanced features:</p>
+    
+    <div class="requirement">
+        <div class="requirement-title">Docker Desktop</div>
+        <p>Enables cross-platform plugin building for multiple architectures.</p>
+        <ul>
+            <li>Download from: <span class="version">https://docker.com/products/docker-desktop</span></li>
+            <li>Required for: Building plugins for different platforms</li>
+            <li>Alternative: Use pre-built plugins from the community</li>
+        </ul>
+    </div>
+    
+    <div class="requirement">
+        <div class="requirement-title">Meson Build System</div>
+        <p>Required for native plugin compilation and development.</p>
+        <ul>
+            <li>Install via Homebrew: <span class="version">brew install meson</span></li>
+            <li>Or via pip: <span class="version">pip install meson</span></li>
+            <li>Required for: Native plugin builds and development</li>
+            <li>Alternative: Use Docker builds or pre-built plugins</li>
+        </ul>
+    </div>
+    
+    <div class="highlight">
+        <strong>Note:</strong> You can install and use the 4DSTAR Bundle Manager immediately. 
+        Docker and Meson can be installed later if you decide to build plugins from source.
+    </div>
+    
+    <p>Click <strong>Continue</strong> to proceed with the installation.</p>
+</body>
+</html>

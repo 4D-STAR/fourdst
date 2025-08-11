@@ -1,0 +1,75 @@
+#!/bin/bash
+
+# Post-install script for 4DSTAR Bundle Manager
+# This script runs after the app is installed via .pkg installer
+# It refreshes Launch Services to ensure file associations and icons work immediately
+
+set -e
+
+APP_NAME="4DSTAR Bundle Manager"
+APP_PATH="/Applications/${APP_NAME}.app"
+LOG_FILE="/tmp/4dstar-postinstall.log"
+
+# Function to log messages
+log_message() {
+    echo "$(date '+%Y-%m-%d %H:%M:%S') - $1" | tee -a "$LOG_FILE"
+}
+
+log_message "Starting post-install script for ${APP_NAME}"
+
+# Check if app was installed correctly
+if [ ! -d "$APP_PATH" ]; then
+    log_message "ERROR: App not found at $APP_PATH"
+    exit 1
+fi
+
+log_message "App found at: $APP_PATH"
+
+# Refresh Launch Services database
+log_message "Refreshing Launch Services database..."
+
+# Reset Launch Services database
+/System/Library/Frameworks/CoreServices.framework/Frameworks/LaunchServices.framework/Support/lsregister \
+    -kill -r -domain local -domain system -domain user 2>&1 | tee -a "$LOG_FILE"
+
+# Register the specific app bundle
+/System/Library/Frameworks/CoreServices.framework/Frameworks/LaunchServices.framework/Support/lsregister \
+    -f "$APP_PATH" 2>&1 | tee -a "$LOG_FILE"
+
+log_message "Launch Services database refreshed"
+
+# Touch desktop to refresh Finder
+log_message "Refreshing Finder..."
+touch "$HOME/Desktop" 2>/dev/null || true
+
+# Try to restart Finder (may fail if user is not logged in graphically)
+if pgrep -x "Finder" > /dev/null; then
+    log_message "Restarting Finder to refresh file associations..."
+    killall Finder 2>/dev/null || true
+    sleep 2
+    open -a Finder 2>/dev/null || true
+else
+    log_message "Finder not running, will refresh on next login"
+fi
+
+# Clear icon cache if possible (requires elevated privileges)
+log_message "Attempting to clear icon cache..."
+if [ -w "/Library/Caches" ]; then
+    rm -rf "/Library/Caches/com.apple.iconservices.store" 2>/dev/null || true
+    log_message "System icon cache cleared"
+fi
+
+# Clear user icon cache
+if [ -w "$HOME/Library/Caches" ]; then
+    rm -rf "$HOME/Library/Caches/com.apple.iconservices.store" 2>/dev/null || true
+    log_message "User icon cache cleared"
+fi
+
+log_message "Post-install script completed successfully"
+log_message "File associations and icons should now be active"
+log_message "If icons don't appear immediately, try logging out and back in"
+
+# Clean up old log files (keep only last 5)
+find /tmp -name "4dstar-postinstall*.log" -mtime +7 -delete 2>/dev/null || true
+
+exit 0

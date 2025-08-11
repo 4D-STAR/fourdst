@@ -13,6 +13,7 @@ try {
 
 let mainWindow;
 let themeUpdateListener;
+let pendingFileToOpen = null;
 
 const createWindow = () => {
   // Create the browser window.
@@ -70,7 +71,25 @@ const setupAppEventHandlers = () => {
   // This method will be called when Electron has finished
   // initialization and is ready to create browser windows.
   // Some APIs can only be used after this event occurs.
-  app.on('ready', createWindow);
+  app.on('ready', () => {
+    createWindow();
+    
+    // Handle any queued file open requests
+    if (pendingFileToOpen) {
+      console.log(`[MAIN_PROCESS] Processing queued file: ${pendingFileToOpen}`);
+      const filePath = pendingFileToOpen;
+      pendingFileToOpen = null;
+      
+      // Wait for window to be ready, then open the file
+      if (mainWindow.webContents.isLoading()) {
+        mainWindow.webContents.once('did-finish-load', () => {
+          handleFileOpen(filePath);
+        });
+      } else {
+        handleFileOpen(filePath);
+      }
+    }
+  });
 
   // Quit when all windows are closed, except on macOS. There, it's common
   // for applications and their menu bar to stay active until the user quits
@@ -88,6 +107,62 @@ const setupAppEventHandlers = () => {
       createWindow();
     }
   });
+
+  // Handle file associations on macOS
+  app.on('open-file', (event, filePath) => {
+    event.preventDefault();
+    console.log(`[MAIN_PROCESS] Opening file via association: ${filePath}`);
+    
+    // If app is not ready yet, queue the file to open later
+    if (!app.isReady()) {
+      console.log(`[MAIN_PROCESS] App not ready, queuing file: ${filePath}`);
+      pendingFileToOpen = filePath;
+      return;
+    }
+    
+    // If no window exists, create one first
+    if (!mainWindow) {
+      createWindow();
+    }
+    
+    // Wait for window to be ready, then send the file path
+    if (mainWindow.webContents.isLoading()) {
+      mainWindow.webContents.once('did-finish-load', () => {
+        handleFileOpen(filePath);
+      });
+    } else {
+      handleFileOpen(filePath);
+    }
+  });
+
+  // Handle file associations on Windows/Linux via command line args
+  if (process.platform !== 'darwin') {
+    // Check if app was launched with a file argument
+    const fileArg = process.argv.find(arg => arg.endsWith('.fbundle') || arg.endsWith('.opat'));
+    if (fileArg && mainWindow) {
+      handleFileOpen(fileArg);
+    }
+  }
+};
+
+// Helper function to handle file opening
+const handleFileOpen = (filePath) => {
+  if (!mainWindow || mainWindow.isDestroyed()) {
+    console.warn('[MAIN_PROCESS] Cannot open file - main window not available');
+    return;
+  }
+
+  const fileExtension = path.extname(filePath).toLowerCase();
+  
+  if (fileExtension === '.fbundle') {
+    console.log(`[MAIN_PROCESS] Opening .fbundle file: ${filePath}`);
+    mainWindow.webContents.send('open-bundle-file', filePath);
+  } else if (fileExtension === '.opat') {
+    console.log(`[MAIN_PROCESS] Opening .opat file: ${filePath}`);
+    mainWindow.webContents.send('open-opat-file', filePath);
+  } else {
+    console.warn(`[MAIN_PROCESS] Unknown file type: ${filePath}`);
+  }
 };
 
 const setupThemeHandlers = () => {

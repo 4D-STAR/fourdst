@@ -7,9 +7,18 @@ let stateManager, domManager, opatPlotting;
 // OPAT File Inspector variables
 let opatFileInput, opatBrowseBtn, opatView, opatCloseBtn;
 let opatHeaderInfo, opatAllTagsList, opatIndexSelector, opatTablesDisplay, opatTableDataContent;
+let opatElementsInitialized = false;
 
 // Initialize OPAT UI elements
 function initializeOPATElements() {
+    console.log('[OPAT_HANDLER] initializeOPATElements called, already initialized:', opatElementsInitialized);
+    
+    // Prevent duplicate initialization
+    if (opatElementsInitialized) {
+        console.log('[OPAT_HANDLER] OPAT elements already initialized, skipping...');
+        return;
+    }
+    
     opatFileInput = document.getElementById('opat-file-input');
     opatBrowseBtn = document.getElementById('opat-browse-btn');
     opatView = document.getElementById('opat-view');
@@ -20,11 +29,41 @@ function initializeOPATElements() {
     opatTablesDisplay = document.getElementById('opat-tables-display');
     opatTableDataContent = document.getElementById('opat-table-data-content');
 
+    console.log('[OPAT_HANDLER] Found elements:', {
+        opatFileInput: !!opatFileInput,
+        opatBrowseBtn: !!opatBrowseBtn,
+        opatView: !!opatView,
+        opatCloseBtn: !!opatCloseBtn
+    });
+
     // Event listeners
-    opatBrowseBtn.addEventListener('click', () => opatFileInput.click());
-    opatFileInput.addEventListener('change', handleOPATFileSelection);
-    opatIndexSelector.addEventListener('change', handleIndexVectorChange);
-    opatCloseBtn.addEventListener('click', closeOPATFile);
+    if (opatBrowseBtn) {
+        console.log('[OPAT_HANDLER] Adding click listener to browse button');
+        opatBrowseBtn.addEventListener('click', () => {
+            console.log('[OPAT_HANDLER] Browse button clicked, triggering file input');
+            if (opatFileInput) {
+                opatFileInput.click();
+            } else {
+                console.error('[OPAT_HANDLER] File input element not found!');
+            }
+        });
+    }
+    
+    if (opatFileInput) {
+        console.log('[OPAT_HANDLER] Adding change listener to file input');
+        opatFileInput.addEventListener('change', handleOPATFileSelection);
+    }
+    
+    if (opatIndexSelector) {
+        opatIndexSelector.addEventListener('change', handleIndexVectorChange);
+    }
+    
+    if (opatCloseBtn) {
+        opatCloseBtn.addEventListener('click', closeOPATFile);
+    }
+    
+    opatElementsInitialized = true;
+    console.log('[OPAT_HANDLER] OPAT elements initialization complete');
 
     // Initialize OPAT tab navigation
     initializeOPATTabs();
@@ -96,48 +135,171 @@ function resetOPATViewerState() {
 
 // Handle OPAT file selection
 async function handleOPATFileSelection(event) {
-    const file = event.target.files[0];
-    if (!file) return;
+    console.log('[OPAT_HANDLER] ===== FILE SELECTION EVENT TRIGGERED =====');
+    console.log('[OPAT_HANDLER] Event target:', event.target);
+    console.log('[OPAT_HANDLER] Files array:', event.target.files);
+    console.log('[OPAT_HANDLER] Number of files:', event.target.files ? event.target.files.length : 0);
     
+    const file = event.target.files[0];
+    if (!file) {
+        console.log('[OPAT_HANDLER] No file selected - event fired but no file found');
+        return;
+    }
+
+    console.log('[OPAT_HANDLER] File selected:', {
+        name: file.name,
+        size: file.size,
+        type: file.type,
+        lastModified: new Date(file.lastModified)
+    });
+
     try {
-        console.log('Loading OPAT file:', file.name);
-        domManager.showSpinner();
+        console.log('[OPAT_HANDLER] Starting file processing...');
         
+        // Reset the viewer state
+        console.log('[OPAT_HANDLER] Resetting viewer state...');
         resetOPATViewerState();
         
+        // Show the OPAT view first to ensure UI is visible
+        console.log('[OPAT_HANDLER] Showing OPAT view...');
+        domManager.showView('opat-view');
+        
+        // Read and parse the file
+        console.log('[OPAT_HANDLER] Reading file as ArrayBuffer...');
         const arrayBuffer = await file.arrayBuffer();
-        const currentOPATFile = parseOPAT(arrayBuffer);
-        stateManager.setOPATFile(currentOPATFile);
+        console.log('[OPAT_HANDLER] File read successfully, arrayBuffer size:', arrayBuffer.byteLength);
         
-        displayOPATFileInfo();
-        displayAllTableTags();
-        populateIndexSelector();
+        // Check if parseOPAT is available
+        console.log('[OPAT_HANDLER] Checking parseOPAT availability...');
+        console.log('[OPAT_HANDLER] typeof parseOPAT:', typeof parseOPAT);
+        console.log('[OPAT_HANDLER] window.parseOPAT:', typeof window.parseOPAT);
         
-        // Populate plotting selectors if module is available
-        if (opatPlotting) {
-            opatPlotting.populatePlotIndexSelector();
+        if (typeof parseOPAT === 'undefined' && typeof window.parseOPAT === 'undefined') {
+            throw new Error('parseOPAT function is not available. Make sure opatParser.js is loaded.');
         }
         
-        // Show OPAT view
-        hideAllViews();
-        opatView.classList.remove('hidden');
+        // Use global parseOPAT if local one is undefined
+        const parseFunction = typeof parseOPAT !== 'undefined' ? parseOPAT : window.parseOPAT;
+        console.log('[OPAT_HANDLER] Using parse function:', typeof parseFunction);
         
-        domManager.hideSpinner();
-        console.log('OPAT file loaded successfully');
+        console.log('[OPAT_HANDLER] Calling parseOPAT...');
+        const currentOPATFile = parseFunction(arrayBuffer);
+        console.log('[OPAT_HANDLER] Parse result:', currentOPATFile ? 'SUCCESS' : 'FAILED');
+        console.log('[OPAT_HANDLER] Parsed file object:', currentOPATFile);
+        
+        if (currentOPATFile) {
+            console.log('[OPAT_HANDLER] Setting file in state manager...');
+            stateManager.setOPATFile(currentOPATFile);
+            
+            // Display file information
+            console.log('[OPAT_HANDLER] Displaying file information...');
+            displayOPATFileInfo();
+            displayAllTableTags();
+            populateIndexSelector();
+            
+            console.log('[OPAT_HANDLER] ===== OPAT FILE LOADED SUCCESSFULLY =====');
+        } else {
+            console.error('[OPAT_HANDLER] parseOPAT returned null/undefined');
+            domManager.showModal('Error', 'Failed to parse OPAT file. Please check the file format.');
+        }
     } catch (error) {
-        console.error('Error loading OPAT file:', error);
-        domManager.hideSpinner();
-        alert('Error loading OPAT file: ' + error.message);
+        console.error('[OPAT_HANDLER] ===== ERROR IN FILE PROCESSING =====');
+        console.error('[OPAT_HANDLER] Error details:', error);
+        console.error('[OPAT_HANDLER] Error stack:', error.stack);
+        domManager.showModal('Error', `Failed to load OPAT file: ${error.message}`);
+    } finally {
+        console.log('[OPAT_HANDLER] Cleaning up file input...');
+        // Clear the file input to prevent issues with reopening the same file
+        if (event.target) {
+            event.target.value = '';
+            console.log('[OPAT_HANDLER] File input cleared');
+        }
+        console.log('[OPAT_HANDLER] ===== FILE SELECTION HANDLER COMPLETE =====');
+    }
+}
+
+// Open OPAT file from file path (for file associations)
+async function openOpatFromPath(filePath) {
+    if (!filePath) {
+        console.log('[OPAT_HANDLER] openOpatFromPath: No file path provided');
+        return;
+    }
+
+    try {
+        console.log('[OPAT_HANDLER] Opening OPAT file from path:', filePath);
+        
+        // Ensure OPAT UI elements are initialized
+        console.log('[OPAT_HANDLER] Initializing OPAT UI elements...');
+        initializeOPATElements();
+        initializeOPATTabs();
+        
+        // Reset the viewer state
+        resetOPATViewerState();
+        
+        // Show the OPAT view first to ensure UI is visible
+        console.log('[OPAT_HANDLER] Showing OPAT view...');
+        domManager.showView('opat-view');
+        
+        // Read the file using Node.js fs
+        const fs = require('fs');
+        console.log('[OPAT_HANDLER] Reading file from disk...');
+        const fileBuffer = fs.readFileSync(filePath);
+        const arrayBuffer = fileBuffer.buffer.slice(fileBuffer.byteOffset, fileBuffer.byteOffset + fileBuffer.byteLength);
+        console.log('[OPAT_HANDLER] File read successfully, arrayBuffer size:', arrayBuffer.byteLength);
+        
+        // Parse the OPAT file
+        console.log('[OPAT_HANDLER] Parsing OPAT file...');
+        if (typeof parseOPAT === 'undefined') {
+            throw new Error('parseOPAT function is not available. Make sure opatParser.js is loaded.');
+        }
+        const currentOPATFile = parseOPAT(arrayBuffer);
+        console.log('[OPAT_HANDLER] Parse result:', currentOPATFile ? 'SUCCESS' : 'FAILED');
+        
+        if (currentOPATFile) {
+            console.log('[OPAT_HANDLER] Setting file in state manager...');
+            stateManager.setOPATFile(currentOPATFile);
+            
+            // Display file information
+            console.log('[OPAT_HANDLER] Displaying file information...');
+            displayOPATFileInfo();
+            displayAllTableTags();
+            populateIndexSelector();
+            
+            console.log('[OPAT_HANDLER] OPAT file opened successfully via file association');
+        } else {
+            console.error('[OPAT_HANDLER] parseOPAT returned null/undefined for file association');
+            throw new Error('Failed to parse OPAT file. Please check the file format.');
+        }
+    } catch (error) {
+        console.error('[OPAT_HANDLER] Error opening OPAT file via file association:', error);
+        domManager.showModal('Error', `Failed to open OPAT file: ${error.message}`);
     }
 }
 
 // Display OPAT file information
 function displayOPATFileInfo() {
+    console.log('[OPAT_HANDLER] displayOPATFileInfo called');
     const currentOPATFile = stateManager.getOPATFile();
-    if (!currentOPATFile) return;
+    console.log('[OPAT_HANDLER] Current OPAT file from state:', currentOPATFile);
+    
+    if (!currentOPATFile) {
+        console.error('[OPAT_HANDLER] No OPAT file in state manager!');
+        return;
+    }
+    
+    console.log('[OPAT_HANDLER] opatHeaderInfo element:', opatHeaderInfo);
+    console.log('[OPAT_HANDLER] opatHeaderInfo exists:', !!opatHeaderInfo);
+    
+    if (!opatHeaderInfo) {
+        console.error('[OPAT_HANDLER] opatHeaderInfo element not found! Re-initializing...');
+        opatHeaderInfo = document.getElementById('opat-header-info');
+        console.log('[OPAT_HANDLER] After re-init, opatHeaderInfo:', !!opatHeaderInfo);
+    }
     
     const header = currentOPATFile.header;
-    opatHeaderInfo.innerHTML = `
+    console.log('[OPAT_HANDLER] Header object:', header);
+    
+    const headerHTML = `
         <div class="opat-info-section">
             <h4 class="opat-section-title">Header Information</h4>
             <div class="info-grid">
@@ -155,14 +317,42 @@ function displayOPATFileInfo() {
         </div>
     `;
     
+    console.log('[OPAT_HANDLER] Generated header HTML length:', headerHTML.length);
+    
+    if (opatHeaderInfo) {
+        opatHeaderInfo.innerHTML = headerHTML;
+        console.log('[OPAT_HANDLER] Header info updated successfully');
+        console.log('[OPAT_HANDLER] opatHeaderInfo.innerHTML length:', opatHeaderInfo.innerHTML.length);
+    } else {
+        console.error('[OPAT_HANDLER] Cannot update header info - element still not found');
+    }
+    
     // Display all unique table tags
+    console.log('[OPAT_HANDLER] Calling displayAllTableTags...');
     displayAllTableTags();
 }
 
 // Display all table tags
 function displayAllTableTags() {
+    console.log('[OPAT_HANDLER] displayAllTableTags called');
     const currentOPATFile = stateManager.getOPATFile();
-    if (!currentOPATFile) return;
+    console.log('[OPAT_HANDLER] Current OPAT file in displayAllTableTags:', currentOPATFile);
+    
+    if (!currentOPATFile) {
+        console.error('[OPAT_HANDLER] No OPAT file in displayAllTableTags!');
+        return;
+    }
+    
+    console.log('[OPAT_HANDLER] opatAllTagsList element:', opatAllTagsList);
+    console.log('[OPAT_HANDLER] opatAllTagsList exists:', !!opatAllTagsList);
+    
+    if (!opatAllTagsList) {
+        console.error('[OPAT_HANDLER] opatAllTagsList element not found! Re-initializing...');
+        opatAllTagsList = document.getElementById('opat-all-tags-list');
+        console.log('[OPAT_HANDLER] After re-init, opatAllTagsList:', !!opatAllTagsList);
+    }
+    
+    console.log('[OPAT_HANDLER] Number of cards:', currentOPATFile.cards.size);
     
     const allTags = new Set();
     for (const card of currentOPATFile.cards.values()) {
@@ -171,12 +361,19 @@ function displayAllTableTags() {
         }
     }
     
-    opatAllTagsList.innerHTML = '';
-    Array.from(allTags).sort().forEach(tag => {
-        const li = document.createElement('li');
-        li.textContent = tag;
-        opatAllTagsList.appendChild(li);
-    });
+    console.log('[OPAT_HANDLER] Found', allTags.size, 'unique tags:', Array.from(allTags));
+    
+    if (opatAllTagsList) {
+        opatAllTagsList.innerHTML = '';
+        Array.from(allTags).sort().forEach(tag => {
+            const li = document.createElement('li');
+            li.textContent = tag;
+            opatAllTagsList.appendChild(li);
+        });
+        console.log('[OPAT_HANDLER] Tags list updated successfully');
+    } else {
+        console.error('[OPAT_HANDLER] Cannot update tags list - element still not found');
+    }
 }
 
 // Populate index selector
@@ -398,6 +595,7 @@ module.exports = {
     initializeOPATTabs,
     resetOPATViewerState,
     handleOPATFileSelection,
+    openOpatFromPath,
     displayOPATFileInfo,
     displayAllTableTags,
     populateIndexSelector,

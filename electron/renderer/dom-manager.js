@@ -85,10 +85,18 @@ function initializeDOMElements() {
 
 // --- VIEW AND UI LOGIC ---
 function showView(viewId) {
+  // Get the OPAT view element
+  const opatView = document.getElementById('opat-view');
+  
   // Hide main content views
   [welcomeScreen, bundleView, createBundleForm].forEach(view => {
     view.classList.toggle('hidden', view.id !== viewId);
   });
+  
+  // Handle OPAT view separately since it's not in the main views array
+  if (opatView) {
+    opatView.classList.toggle('hidden', viewId !== 'opat-view');
+  }
   
   // Also hide all category home screens when showing main content
   const categoryHomeScreens = [
@@ -107,6 +115,14 @@ function showView(viewId) {
     const libpluginView = document.getElementById('libplugin-view');
     if (libpluginView) {
       libpluginView.classList.remove('hidden');
+    }
+  } else if (viewId === 'opat-view') {
+    // Ensure OPAT view is visible and properly initialized
+    if (opatView) {
+      opatView.classList.remove('hidden');
+      console.log('[DOM_MANAGER] OPAT view shown successfully');
+    } else {
+      console.error('[DOM_MANAGER] OPAT view element not found!');
     }
   }
 }

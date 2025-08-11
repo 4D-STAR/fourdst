@@ -5,14 +5,16 @@
   "main": "main-refactored.js",
   "scripts": {
     "start": "electron .",
-    "dev": "electron .",
-    "validate": "node validate-dependencies.js",
-    "prebuild": "node build-backend.js && node validate-dependencies.js",
+    "generate-icons": "node generate-icons.js",
+    "validate-deps": "node validate-dependencies.js",
+    "check-runtime": "node check-runtime-deps.js",
+    "refresh-icons": "node refresh-macos-icons.js",
+    "prebuild": "node generate-icons.js && node build-backend.js && node validate-dependencies.js",
     "build": "electron-builder",
-    "prepack": "node build-backend.js && node validate-dependencies.js",
+    "prepack": "node generate-icons.js && node build-backend.js && node validate-dependencies.js",
     "pack": "electron-builder --dir",
     "postbuild": "node validate-dependencies.js",
-    "clean": "rm -rf dist build node_modules/.cache"
+    "clean": "rm -rf dist build node_modules/.cache icons temp-icons"
   },
   "repository": {
     "type": "git",
@@ -45,7 +47,7 @@
     "directories": {
       "output": "dist"
     },
-    "icon": "toolkitIcon.png",
+    "icon": "icons/app-icon.icns",
     "files": [
       "**/*",
       "node_modules/**/*",
@@ -56,7 +58,24 @@
       "!**/test/**/*",
       "!**/tests/**/*",
       "!**/*.test.js",
-      "!**/*.spec.js"
+      "!**/*.spec.js",
+      "!temp-icons/**/*"
+    ],
+    "fileAssociations": [
+      {
+        "ext": "fbundle",
+        "name": "4DSTAR Bundle File",
+        "description": "4DSTAR Bundle Archive",
+        "icon": "icons/fbundle-icon.icns",
+        "role": "Editor"
+      },
+      {
+        "ext": "opat",
+        "name": "OPAT Data File", 
+        "description": "Opacity Project for Asteroseismology and Tidal Evolution Data File",
+        "icon": "icons/opat-icon.icns",
+        "role": "Viewer"
+      }
     ],
     "extraResources": [
       {
@@ -77,6 +96,10 @@
           "arch": ["x64", "arm64"]
         },
         {
+          "target": "pkg",
+          "arch": ["x64", "arm64"]
+        },
+        {
           "target": "zip", 
           "arch": ["x64", "arm64"]
         }
@@ -84,7 +107,62 @@
       "hardenedRuntime": true,
       "gatekeeperAssess": false,
       "entitlements": "entitlements.mac.plist",
-      "entitlementsInherit": "entitlements.mac.plist"
+      "entitlementsInherit": "entitlements.mac.plist",
+      "extendInfo": {
+        "CFBundleDocumentTypes": [
+          {
+            "CFBundleTypeName": "4DSTAR Bundle File",
+            "CFBundleTypeDescription": "4DSTAR Bundle Archive",
+            "CFBundleTypeRole": "Editor",
+            "CFBundleTypeExtensions": ["fbundle"],
+            "CFBundleTypeIconFile": "fbundle-icon.icns",
+            "LSHandlerRank": "Owner",
+            "LSItemContentTypes": ["com.fourdst.fbundle"]
+          },
+          {
+            "CFBundleTypeName": "OPAT Data File",
+            "CFBundleTypeDescription": "Opacity Project for Asteroseismology and Tidal Evolution Data File", 
+            "CFBundleTypeRole": "Viewer",
+            "CFBundleTypeExtensions": ["opat"],
+            "CFBundleTypeIconFile": "opat-icon.icns",
+            "LSHandlerRank": "Owner",
+            "LSItemContentTypes": ["com.fourdst.opat"]
+          }
+        ],
+        "UTExportedTypeDeclarations": [
+          {
+            "UTTypeIdentifier": "com.fourdst.fbundle",
+            "UTTypeDescription": "4DSTAR Bundle Archive",
+            "UTTypeConformsTo": ["public.data", "public.archive"],
+            "UTTypeTagSpecification": {
+              "public.filename-extension": ["fbundle"],
+              "public.mime-type": ["application/x-fourdst-bundle"]
+            }
+          },
+          {
+            "UTTypeIdentifier": "com.fourdst.opat",
+            "UTTypeDescription": "OPAT Data File",
+            "UTTypeConformsTo": ["public.data"],
+            "UTTypeTagSpecification": {
+              "public.filename-extension": ["opat"],
+              "public.mime-type": ["application/x-opat-data"]
+            }
+          }
+        ]
+      }
+    },
+    "pkg": {
+      "scripts": "installer-scripts",
+      "welcome": "installer-resources/welcome.html",
+      "conclusion": "installer-resources/conclusion.html",
+      "allowAnywhere": false,
+      "allowCurrentUserHome": false,
+      "allowRootDirectory": false,
+      "identity": null,
+      "installLocation": "/Applications",
+      "mustClose": [
+        "com.fourdst.bundlemanager"
+      ]
     },
     "linux": {
       "target": [

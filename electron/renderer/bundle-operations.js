@@ -12,6 +12,12 @@ async function handleOpenBundle() {
   const bundlePath = await ipcRenderer.invoke('select-file');
   if (!bundlePath) return;
 
+  await openBundleFromPath(bundlePath);
+}
+
+async function openBundleFromPath(bundlePath) {
+  if (!bundlePath) return;
+
   // Small delay to ensure file dialog closes properly
   await new Promise(resolve => setTimeout(resolve, 100));
 
@@ -249,6 +255,7 @@ function initializeDependencies(deps) {
 module.exports = {
   initializeDependencies,
   handleOpenBundle,
+  openBundleFromPath,
   handleSignBundle,
   handleValidateBundle,
   handleClearBundle,

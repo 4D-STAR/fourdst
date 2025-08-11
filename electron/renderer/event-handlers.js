@@ -4,7 +4,7 @@
 const { ipcRenderer } = require('electron');
 
 // Import dependencies (these will be injected when integrated)
-let stateManager, domManager, bundleOperations, fillWorkflow, uiComponents;
+let stateManager, domManager, bundleOperations, fillWorkflow, uiComponents, opatHandler;
 
 // --- EVENT LISTENERS SETUP ---
 function setupEventListeners() {
@@ -13,6 +13,49 @@ function setupEventListeners() {
   // Theme updates
   ipcRenderer.on('theme-updated', (event, { shouldUseDarkColors }) => {
     document.body.classList.toggle('dark-mode', shouldUseDarkColors);
+  });
+
+  // File association handlers
+  ipcRenderer.on('open-bundle-file', async (event, filePath) => {
+    console.log(`[RENDERER] Opening .fbundle file via association: ${filePath}`);
+    try {
+      // Switch to libplugin category if not already there
+      const libpluginCategory = document.querySelector('.category-item[data-category="libplugin"]');
+      if (libpluginCategory && !libpluginCategory.classList.contains('active')) {
+        libpluginCategory.click();
+      }
+      
+      // Open the bundle
+      await bundleOperations.openBundleFromPath(filePath);
+    } catch (error) {
+      console.error('[RENDERER] Error opening bundle file:', error);
+      domManager.showModal('File Open Error', `Failed to open bundle file: ${error.message}`);
+    }
+  });
+
+  ipcRenderer.on('open-opat-file', async (event, filePath) => {
+    console.log(`[RENDERER] Opening .opat file via association: ${filePath}`);
+    try {
+      // Switch to OPAT Core category
+      const opatCategory = document.querySelector('.category-item[data-category="opat"]');
+      if (opatCategory) {
+        opatCategory.click();
+      }
+      
+      // Wait a moment for category switching to complete
+      await new Promise(resolve => setTimeout(resolve, 100));
+      
+      // Open the OPAT file using the OPAT handler
+      if (opatHandler && opatHandler.openOpatFromPath) {
+        await opatHandler.openOpatFromPath(filePath);
+      } else {
+        console.warn('[RENDERER] OPAT file opening not available');
+        domManager.showModal('Error', 'OPAT file opening functionality is not available.');
+      }
+    } catch (error) {
+      console.error('[RENDERER] Error opening OPAT file:', error);
+      domManager.showModal('File Open Error', `Failed to open OPAT file: ${error.message}`);
+    }
   });
 
   // Sidebar navigation
@@ -375,6 +418,7 @@ function initializeDependencies(deps) {
   bundleOperations = deps.bundleOperations;
   fillWorkflow = deps.fillWorkflow;
   uiComponents = deps.uiComponents;
+  opatHandler = deps.opatHandler;
 }
 
 module.exports = {
