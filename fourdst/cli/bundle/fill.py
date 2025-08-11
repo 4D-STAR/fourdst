@@ -95,7 +95,12 @@ def bundle_fill(bundle_path: Path = typer.Argument(..., help="The .fbundle file 
 
     # 1. Find available targets and missing binaries using the core function
     try:
-        fillable_targets = get_fillable_targets(bundle_path)
+        response = get_fillable_targets(bundle_path)
+        if not response.get('success', False):
+            console.print(f"[red]Error analyzing bundle: {response.get('error', 'Unknown error')}[/red]")
+            raise typer.Exit(code=1)
+        
+        fillable_targets = response.get('data', {})
     except Exception as e:
         console.print(f"[red]Error analyzing bundle: {e}[/red]")
         raise typer.Exit(code=1)
