@@ -163,6 +163,14 @@ function hideSaveOptionsModal() {
   elements.saveOptionsModal.classList.add('hidden');
 }
 
+// Show confirmation dialog
+function showConfirmDialog(title, message) {
+  return new Promise((resolve) => {
+    const confirmed = confirm(`${title}\n\n${message}`);
+    resolve(confirmed);
+  });
+}
+
 // Initialize dependencies (called when module is loaded)
 function initializeDependencies(deps) {
   stateManager = deps.stateManager;
@@ -179,5 +187,6 @@ module.exports = {
   checkForChanges,
   updateSaveButtonVisibility,
   showSaveOptionsModal,
-  hideSaveOptionsModal
+  hideSaveOptionsModal,
+  showConfirmDialog
 };

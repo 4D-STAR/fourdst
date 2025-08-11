@@ -3,11 +3,9 @@
 import os
 import subprocess
 import zipfile
-import docker
 import io
 import tarfile
 from pathlib import Path
-import zipfile
 
 try:
     import docker
@@ -170,8 +168,11 @@ def build_plugin_in_docker(sdist_path: Path, build_dir: Path, target: dict, plug
     # Use the tarfile module for robust extraction
     bits, _ = container.get_archive(str(container_build_dir / "abi_details.txt"))
     with tarfile.open(fileobj=io.BytesIO(b''.join(bits))) as tar:
-        member = tar.getmembers()[0]
-        extracted_file = tar.extractfile(member)
+        extracted_file = None
+        for member in tar.getmembers():
+            if member.isfile():
+                extracted_file = tar.extractfile(member)
+                break
         if not extracted_file:
             raise FileNotFoundError("Could not extract abi_details.txt from container archive.")
         abi_details_content = extracted_file.read()

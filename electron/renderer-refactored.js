@@ -8,6 +8,7 @@ const { ipcRenderer } = require('electron');
 const stateManager = require('./renderer/state-manager');
 const domManager = require('./renderer/dom-manager');
 const bundleOperations = require('./renderer/bundle-operations');
+const keyOperations = require('./renderer/key-operations');
 const uiComponents = require('./renderer/ui-components');
 const eventHandlers = require('./renderer/event-handlers');
 const opatHandler = require('./renderer/opat-handler');
@@ -21,6 +22,7 @@ function initializeModules() {
     stateManager,
     domManager,
     bundleOperations,
+    keyOperations,
     uiComponents,
     eventHandlers,
     opatHandler,
@@ -30,6 +32,7 @@ function initializeModules() {
   
   // Initialize each module with its dependencies
   bundleOperations.initializeDependencies(deps);
+  keyOperations.initializeDependencies(deps);
   uiComponents.initializeDependencies(deps);
   eventHandlers.initializeDependencies(deps);
   opatHandler.initializeDependencies(deps);
@@ -83,6 +86,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 window.stateManager = stateManager;
 window.domManager = domManager;
 window.bundleOperations = bundleOperations;
+window.keyOperations = keyOperations;
 window.uiComponents = uiComponents;
 window.eventHandlers = eventHandlers;
 window.opatHandler = opatHandler;

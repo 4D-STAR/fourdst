@@ -2,7 +2,7 @@
 // Extracted from renderer.js to centralize DOM element handling and view management
 
 // --- DOM ELEMENTS (will be initialized in initializeDOMElements) ---
-let welcomeScreen, bundleView, createBundleForm;
+let welcomeScreen, bundleView, keysView, createBundleForm;
 let openBundleBtn, createBundleBtn;
 let signBundleBtn, validateBundleBtn, clearBundleBtn, saveMetadataBtn;
 let saveOptionsModal, overwriteBundleBtn, saveAsNewBtn;
@@ -43,6 +43,7 @@ function initializeDOMElements() {
   // Views
   welcomeScreen = document.getElementById('welcome-screen');
   bundleView = document.getElementById('bundle-view');
+  keysView = document.getElementById('keys-view');
   createBundleForm = document.getElementById('create-bundle-form');
 
   // Sidebar buttons
@@ -89,7 +90,7 @@ function showView(viewId) {
   const opatView = document.getElementById('opat-view');
   
   // Hide main content views
-  [welcomeScreen, bundleView, createBundleForm].forEach(view => {
+  [welcomeScreen, bundleView, keysView, createBundleForm].forEach(view => {
     view.classList.toggle('hidden', view.id !== viewId);
   });
   
@@ -171,6 +172,7 @@ module.exports = {
   getElements: () => ({
     welcomeScreen,
     bundleView,
+    keysView,
     createBundleForm,
     openBundleBtn,
     createBundleBtn,

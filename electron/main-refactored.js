@@ -5,7 +5,7 @@
 // Import modular components
 const { setupAppEventHandlers, setupThemeHandlers } = require('./main/app-lifecycle');
 const { setupFileDialogHandlers } = require('./main/file-dialogs');
-const { setupBundleIPCHandlers } = require('./main/ipc-handlers');
+const { setupBundleIPCHandlers, setupKeyIPCHandlers } = require('./main/ipc-handlers');
 
 // Initialize all modules in the correct order
 function initializeMainProcess() {
@@ -20,6 +20,9 @@ function initializeMainProcess() {
   
   // Setup bundle operation IPC handlers
   setupBundleIPCHandlers();
+  
+  // Setup key management IPC handlers
+  setupKeyIPCHandlers();
   
   console.log('[MAIN_PROCESS] All modules initialized successfully');
 }

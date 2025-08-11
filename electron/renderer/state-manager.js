@@ -11,6 +11,10 @@ let pendingOperation = null; // Store the operation to execute after warning con
 // Current OPAT file state
 let currentOPATFile = null;
 
+// Current key management state
+let currentKeys = null;
+let keyOperationInProgress = false;
+
 // Bundle state management
 const getBundleState = () => ({
   currentBundle,
@@ -67,6 +71,27 @@ const clearOPATFile = () => {
   currentOPATFile = null;
 };
 
+// Key management state functions
+const setKeysState = (keysData) => {
+  currentKeys = keysData;
+};
+
+const getKeysState = () => {
+  return currentKeys;
+};
+
+const clearKeysState = () => {
+  currentKeys = null;
+};
+
+const setKeyOperationInProgress = (inProgress) => {
+  keyOperationInProgress = inProgress;
+};
+
+const getKeyOperationInProgress = () => {
+  return keyOperationInProgress;
+};
+
 // Export state management functions
 module.exports = {
   // Bundle state
@@ -85,6 +110,13 @@ module.exports = {
   setOPATFile,
   getOPATFile,
   clearOPATFile,
+  
+  // Key management state
+  setKeysState,
+  getKeysState,
+  clearKeysState,
+  setKeyOperationInProgress,
+  getKeyOperationInProgress,
   
   // Direct state access (for compatibility)
   getCurrentBundle: () => currentBundle,

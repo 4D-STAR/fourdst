@@ -29,6 +29,23 @@ const setupFileDialogHandlers = () => {
     return null;
   });
 
+  // Key file selection dialog
+  ipcMain.handle('select-key-file', async () => {
+    const result = await dialog.showOpenDialog({
+      properties: ['openFile'],
+      title: 'Select Public Key File',
+      filters: [
+        { name: 'Public Key Files', extensions: ['pub', 'pem'] },
+        { name: 'All Files', extensions: ['*'] }
+      ]
+    });
+    
+    if (!result.canceled && result.filePaths.length > 0) {
+      return result.filePaths[0];
+    }
+    return null;
+  });
+
   // Save file dialog
   ipcMain.handle('select-save-file', async () => {
     const result = await dialog.showSaveDialog({

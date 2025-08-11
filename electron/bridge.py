@@ -11,11 +11,10 @@ that now return JSON directly. No more complex stdout mixing or data wrapping.
 Key Changes:
 - Core functions return JSON-serializable dictionaries directly
 - Progress messages go to stderr only (never mixed with JSON output)
-- Clean JSON output to stdout for Electron to parse
-- Simplified error handling with consistent JSON error format
 """
 
 import sys
+import os
 import json
 import inspect
 import traceback
@@ -35,7 +34,7 @@ class FourdstEncoder(json.JSONEncoder):
 project_root = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(project_root))
 
-from fourdst.core import bundle
+from fourdst.core import bundle, keys
 
 def main():
     # Use stderr for all logging to avoid interfering with JSON output on stdout
@@ -62,13 +61,25 @@ def main():
         print(f"[BRIDGE_INFO] Parsed kwargs: {kwargs}", file=log_file, flush=True)
 
         # Convert path strings to Path objects where needed
+        path_params = ['outputDir', 'output_dir', 'keyPath', 'key_path', 'bundlePath', 'bundle_path', 'path']
         for key, value in kwargs.items():
-            if isinstance(value, str) and ('path' in key.lower() or 'key' in key.lower()):
+            if isinstance(value, str) and key in path_params:
                 kwargs[key] = Path(value)
             elif isinstance(value, list) and 'dirs' in key.lower():
                 kwargs[key] = [Path(p) for p in value]
 
-        func = getattr(bundle, command)
+        # Route commands to appropriate modules
+        key_commands = [
+            'list_keys', 'generate_key', 'add_key', 'remove_key', 
+            'sync_remotes', 'get_remote_sources', 'add_remote_source', 'remove_remote_source'
+        ]
+        
+        if command in key_commands:
+            func = getattr(keys, command)
+            module_name = "keys"
+        else:
+            func = getattr(bundle, command)
+            module_name = "bundle"
 
         # Create progress callback that sends structured progress to stderr
         # This keeps progress separate from the final JSON result on stdout
@@ -87,7 +98,9 @@ def main():
         if 'progress_callback' in sig.parameters:
             kwargs['progress_callback'] = progress_callback
 
-        print(f"[BRIDGE_INFO] Calling function `bundle.{command}`...", file=log_file, flush=True)
+        print(f"[BRIDGE_INFO] Calling function `{module_name}.{command}`...", file=log_file, flush=True)
+        print(f"[BRIDGE_DEBUG] Function signature: {func.__name__}{inspect.signature(func)}", file=log_file, flush=True)
+        print(f"[BRIDGE_DEBUG] Kwargs being passed: {kwargs}", file=log_file, flush=True)
         result = func(**kwargs)
         print(f"[BRIDGE_INFO] Function returned successfully.", file=log_file, flush=True)
 

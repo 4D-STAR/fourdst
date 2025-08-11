@@ -10,16 +10,21 @@ function runPythonCommand(command, kwargs, event) {
     // Determine executable name based on platform
     const executableName = process.platform === 'win32' ? 'fourdst-backend.exe' : 'fourdst-backend';
     
+    // Initialize args first
+    let args = [command, JSON.stringify(kwargs)];
+    
     if (app.isPackaged) {
         // In packaged app, backend is in resources/backend/ directory
         backendPath = path.join(process.resourcesPath, 'backend', executableName);
     } else {
-        // In development, use the meson build output
-        backendPath = path.join(buildDir, 'electron', 'dist', 'fourdst-backend', executableName);
+        // In development, use the Python bridge.py directly for faster iteration
+        backendPath = 'python';
+        // Update args to include the bridge.py path as the first argument
+        const bridgePath = path.join(__dirname, '..', 'bridge.py');
+        args.unshift(bridgePath);
     }
 
     console.log(`[MAIN_PROCESS] Spawning backend: ${backendPath}`);
-    const args = [command, JSON.stringify(kwargs)];
     console.log(`[MAIN_PROCESS] With args: [${args.join(', ')}]`);
 
     return new Promise((resolve) => {

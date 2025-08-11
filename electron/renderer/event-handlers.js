@@ -4,7 +4,7 @@
 const { ipcRenderer } = require('electron');
 
 // Import dependencies (these will be injected when integrated)
-let stateManager, domManager, bundleOperations, fillWorkflow, uiComponents, opatHandler;
+let stateManager, domManager, bundleOperations, keyOperations, fillWorkflow, uiComponents, opatHandler;
 
 // --- EVENT LISTENERS SETUP ---
 function setupEventListeners() {
@@ -85,6 +85,9 @@ function setupEventListeners() {
   elements.saveMetadataBtn.addEventListener('click', uiComponents.showSaveOptionsModal);
   elements.overwriteBundleBtn.addEventListener('click', () => handleSaveMetadata(false));
   elements.saveAsNewBtn.addEventListener('click', () => handleSaveMetadata(true));
+  
+  // Key Management event listeners
+  setupKeyManagementEventListeners();
   
   // Signature warning modal event listeners
   elements.signatureWarningCancel.addEventListener('click', () => {
@@ -207,7 +210,7 @@ function showCategoryHomeScreen(category) {
   const views = [
     'welcome-screen', 'libplugin-home', 'opat-home', 
     'libconstants-home', 'serif-home', 'opat-view', 'libplugin-view',
-    'bundle-view', 'create-bundle-form'
+    'bundle-view', 'keys-view', 'create-bundle-form'
   ];
   
   // Hide all views
@@ -222,12 +225,28 @@ function showCategoryHomeScreen(category) {
     'libplugin': 'libplugin-home',
     'opat': 'opat-home',
     'libconstants': 'libconstants-home',
-    'serif': 'serif-home'
+    'serif': 'serif-home',
+    'keys': 'keys-view'
   };
   
   const viewId = viewMap[category] || 'welcome-screen';
   const view = document.getElementById(viewId);
-  if (view) view.classList.remove('hidden');
+  if (view) {
+    view.classList.remove('hidden');
+    
+    // Initialize key management when showing keys view
+    if (category === 'keys' && keyOperations) {
+      // Show the default keys list view and load keys
+      showKeyManagementView('keys-list-view');
+      keyOperations.loadTrustedKeys();
+      
+      // Set the keys-list-btn as active in sidebar
+      const keysSidebarButtons = document.querySelectorAll('#keys-list-btn, #keys-generate-btn, #keys-add-btn, #keys-remotes-btn');
+      keysSidebarButtons.forEach(btn => btn.classList.remove('active'));
+      const keysListBtn = document.getElementById('keys-list-btn');
+      if (keysListBtn) keysListBtn.classList.add('active');
+    }
+  }
 }
 
 // Setup info modal
@@ -411,11 +430,88 @@ async function handleSaveMetadata(saveAsNew = false) {
   uiComponents.hideSaveOptionsModal();
 }
 
+// Setup key management event listeners
+function setupKeyManagementEventListeners() {
+  // Key management sidebar navigation
+  const keysSidebarButtons = document.querySelectorAll('#keys-list-btn, #keys-generate-btn, #keys-add-btn, #keys-remotes-btn');
+  keysSidebarButtons.forEach(button => {
+    button.addEventListener('click', (e) => {
+      e.preventDefault();
+      
+      // Update active sidebar button
+      keysSidebarButtons.forEach(btn => btn.classList.remove('active'));
+      button.classList.add('active');
+      
+      // Show appropriate key management view
+      const viewMap = {
+        'keys-list-btn': 'keys-list-view',
+        'keys-generate-btn': 'keys-generate-view',
+        'keys-add-btn': 'keys-add-view',
+        'keys-remotes-btn': 'keys-remotes-view'
+      };
+      
+      const targetView = viewMap[button.id];
+      if (targetView) {
+        showKeyManagementView(targetView);
+        
+        // Load content for specific views
+        if (targetView === 'keys-list-view') {
+          keyOperations.loadTrustedKeys();
+        } else if (targetView === 'keys-remotes-view') {
+          keyOperations.loadRemoteSources();
+        }
+      }
+    });
+  });
+  
+  // Generate key button
+  const generateKeyBtn = document.getElementById('generate-key-btn');
+  if (generateKeyBtn) {
+    generateKeyBtn.addEventListener('click', keyOperations.handleGenerateKey);
+  }
+  
+  // Add remote button
+  const addRemoteBtn = document.getElementById('add-remote-btn');
+  if (addRemoteBtn) {
+    addRemoteBtn.addEventListener('click', keyOperations.handleAddRemote);
+  }
+  
+  // Add key file button
+  const addKeyFileBtn = document.getElementById('add-key-file-btn');
+  if (addKeyFileBtn) {
+    addKeyFileBtn.addEventListener('click', keyOperations.handleAddKey);
+  }
+
+  // Dynamic buttons (will be added dynamically to keys list)
+  document.addEventListener('click', (e) => {
+    if (e.target.classList.contains('sync-remotes-btn')) {
+      keyOperations.handleSyncRemotes();
+    } else if (e.target.classList.contains('remove-remote-btn')) {
+      const remoteName = e.target.dataset.remoteName;
+      keyOperations.handleRemoveRemote(remoteName);
+    }
+  });
+}
+
+// Show specific key management view
+function showKeyManagementView(viewId) {
+  // Hide all key management views
+  const keyViews = document.querySelectorAll('.key-management-view');
+  keyViews.forEach(view => view.classList.add('hidden'));
+  
+  // Show the target view
+  const targetView = document.getElementById(viewId);
+  if (targetView) {
+    targetView.classList.remove('hidden');
+  }
+}
+
 // Initialize dependencies (called when module is loaded)
 function initializeDependencies(deps) {
   stateManager = deps.stateManager;
   domManager = deps.domManager;
   bundleOperations = deps.bundleOperations;
+  keyOperations = deps.keyOperations;
   fillWorkflow = deps.fillWorkflow;
   uiComponents = deps.uiComponents;
   opatHandler = deps.opatHandler;
@@ -424,6 +520,8 @@ function initializeDependencies(deps) {
 module.exports = {
   initializeDependencies,
   setupEventListeners,
+  setupKeyManagementEventListeners,
+  showKeyManagementView,
   checkSignatureAndWarn,
   setupCategoryNavigation,
   updateWelcomeScreen,

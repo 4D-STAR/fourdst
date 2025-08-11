@@ -3,6 +3,69 @@ const { runPythonCommand } = require('./backend-bridge');
 const fs = require('fs-extra');
 const path = require('path');
 
+const setupKeyIPCHandlers = () => {
+  // List keys handler
+  ipcMain.handle('list-keys', async (event) => {
+    const kwargs = {};
+    return runPythonCommand('list_keys', kwargs, event);
+  });
+
+  // Generate key handler
+  ipcMain.handle('generate-key', async (event, { keyName, keyType, outputDir }) => {
+    const kwargs = {
+      key_name: keyName,
+      key_type: keyType,
+      output_dir: outputDir
+    };
+    return runPythonCommand('generate_key', kwargs, event);
+  });
+
+  // Add key handler
+  ipcMain.handle('add-key', async (event, keyPath) => {
+    const kwargs = {
+      key_path: keyPath
+    };
+    return runPythonCommand('add_key', kwargs, event);
+  });
+
+  // Remove key handler
+  ipcMain.handle('remove-key', async (event, keyIdentifier) => {
+    const kwargs = {
+      key_identifier: keyIdentifier
+    };
+    return runPythonCommand('remove_key', kwargs, event);
+  });
+
+  // Sync remotes handler
+  ipcMain.handle('sync-remotes', async (event) => {
+    const kwargs = {};
+    return runPythonCommand('sync_remotes', kwargs, event);
+  });
+
+  // Get remote sources handler
+  ipcMain.handle('get-remote-sources', async (event) => {
+    const kwargs = {};
+    return runPythonCommand('get_remote_sources', kwargs, event);
+  });
+
+  // Add remote source handler
+  ipcMain.handle('add-remote-source', async (event, { name, url }) => {
+    const kwargs = {
+      name: name,
+      url: url
+    };
+    return runPythonCommand('add_remote_source', kwargs, event);
+  });
+
+  // Remove remote source handler
+  ipcMain.handle('remove-remote-source', async (event, name) => {
+    const kwargs = {
+      name: name
+    };
+    return runPythonCommand('remove_remote_source', kwargs, event);
+  });
+};
+
 const setupBundleIPCHandlers = () => {
   // Create bundle handler
   ipcMain.handle('create-bundle', async (event, bundleData) => {
@@ -171,5 +234,6 @@ const setupBundleIPCHandlers = () => {
 };
 
 module.exports = {
-  setupBundleIPCHandlers
+  setupBundleIPCHandlers,
+  setupKeyIPCHandlers
 };

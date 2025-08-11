@@ -30,6 +30,10 @@
                     <div class="category-icon" style="background-color: #10b981;">LC</div>
                     <span class="category-label">libconstants</span>
                 </div>
+                <div class="category-item" data-category="keys" title="Key Management">
+                    <div class="category-icon" style="background-color: #8b5cf6;">KM</div>
+                    <span class="category-label">Key Management</span>
+                </div>
                 <div class="category-item" data-category="opat" title="OPAT Core">
                     <div class="category-icon" style="background-color: #f59e0b;">OC</div>
                     <span class="category-label">OPAT Core</span>
@@ -69,6 +73,19 @@
                 <div class="empty-state">
                     <p>Constants tools coming soon...</p>
                 </div>
+            </div>
+
+            <!-- Key Management content -->
+            <div class="sidebar-content hidden" data-category="keys">
+                <div class="sidebar-header">
+                    <h3>Key Management</h3>
+                </div>
+                <nav class="sidebar-nav">
+                    <button id="keys-list-btn" class="nav-button active">Trusted Keys</button>
+                    <button id="keys-generate-btn" class="nav-button">Generate Key</button>
+                    <button id="keys-add-btn" class="nav-button">Add Key</button>
+                    <button id="keys-remotes-btn" class="nav-button">Remote Sources</button>
+                </nav>
             </div>
 
             <!-- OPAT Core content -->
@@ -123,6 +140,14 @@
                                 <div class="feature-info">
                                     <h3>OPAT File Inspector</h3>
                                     <p>Inspect and analyze OPAT (Opacity Table) files. View table data and explore index vectors.</p>
+                                </div>
+                            </div>
+                            
+                            <div class="feature-card">
+                                <div class="feature-icon" style="background-color: #8b5cf6;">KM</div>
+                                <div class="feature-info">
+                                    <h3>Key Management</h3>
+                                    <p>Manage cryptographic keys for bundle signing and verification.</p>
                                 </div>
                             </div>
                             
@@ -450,6 +475,118 @@
                         <div id="fill-progress-container" class="hidden">
                             <h4>Build Progress</h4>
                             <div id="fill-progress-content"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Key Management Views -->
+            <div id="keys-view" class="hidden">
+                <!-- Trusted Keys View -->
+                <div id="keys-list-view" class="key-management-view">
+                    <div class="keys-header">
+                        <h3>Trusted Keys</h3>
+                        <p>Manage cryptographic keys for bundle signing and verification.</p>
+                    </div>
+                    <div id="keys-list-container">
+                        <div class="empty-state">
+                            <div class="empty-icon">🔑</div>
+                            <h3>Loading Keys...</h3>
+                            <p>Please wait while we load your trusted keys.</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Generate Key View -->
+                <div id="keys-generate-view" class="key-management-view hidden">
+                    <div class="generate-key-header">
+                        <h3>Generate New Key Pair</h3>
+                        <p>Create a new cryptographic key pair for signing bundles.</p>
+                    </div>
+                    <div class="generate-key-form">
+                        <div class="form-group">
+                            <label for="generate-key-name">Key Name:</label>
+                            <input type="text" id="generate-key-name" placeholder="author_key" value="author_key">
+                            <small>Base name for the generated key files</small>
+                        </div>
+                        <div class="form-group">
+                            <label for="generate-key-type">Key Type:</label>
+                            <select id="generate-key-type">
+                                <option value="ed25519">Ed25519 (Recommended)</option>
+                                <option value="rsa">RSA-2048</option>
+                            </select>
+                            <small>Ed25519 is faster and more secure than RSA</small>
+                        </div>
+                        <div class="form-group">
+                            <label for="generate-output-dir">Output Directory:</label>
+                            <input type="text" id="generate-output-dir" placeholder="." value=".">
+                            <small>Directory where keys will be saved</small>
+                        </div>
+                        <div class="form-actions">
+                            <button id="generate-key-btn" class="action-button primary">Generate Key Pair</button>
+                        </div>
+                        <div class="security-notice">
+                            <div class="warning-banner">
+                                <span class="warning-icon">⚠️</span>
+                                <div class="warning-text">
+                                    <strong>Security Notice:</strong> Keep your private key secure and never share it. 
+                                    Only share the public key (.pub or .pub.pem files) with others who need to verify your bundles.
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Add Key View -->
+                <div id="keys-add-view" class="key-management-view hidden">
+                    <div class="add-key-header">
+                        <h3>Add Trusted Key</h3>
+                        <p>Add a public key to your trust store for bundle verification.</p>
+                    </div>
+                    <div class="add-key-form">
+                        <div class="form-actions">
+                            <button id="add-key-file-btn" class="action-button primary">Select Key File</button>
+                        </div>
+                        <div class="info-notice">
+                            <div class="info-banner">
+                                <span class="info-icon">ℹ️</span>
+                                <div class="info-text">
+                                    <strong>Supported formats:</strong> .pub, .pub.pem, and .pem files containing public keys.
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Remote Sources View -->
+                <div id="keys-remotes-view" class="key-management-view hidden">
+                    <div class="remotes-header">
+                        <h3>Remote Key Sources</h3>
+                        <p>Manage Git repositories that contain trusted public keys.</p>
+                    </div>
+                    
+                    <div class="add-remote-form">
+                        <h4>Add New Remote Source</h4>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="remote-name">Name:</label>
+                                <input type="text" id="remote-name" placeholder="my-keys">
+                            </div>
+                            <div class="form-group">
+                                <label for="remote-url">Git Repository URL:</label>
+                                <input type="text" id="remote-url" placeholder="https://github.com/user/keys.git">
+                            </div>
+                            <div class="form-group">
+                                <button id="add-remote-btn" class="action-button primary">Add Remote</button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div id="remotes-list-container">
+                        <div class="empty-state">
+                            <div class="empty-icon">🌐</div>
+                            <h3>Loading Remote Sources...</h3>
+                            <p>Please wait while we load your remote key sources.</p>
                         </div>
                     </div>
                 </div>

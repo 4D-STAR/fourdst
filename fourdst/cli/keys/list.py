@@ -1,23 +1,25 @@
 # fourdst/cli/keys/list.py
 import typer
-from pathlib import Path
-from fourdst.cli.common.config import LOCAL_TRUST_STORE_PATH
+from fourdst.core.keys import list_keys
 
 def keys_list():
     """Lists all trusted public keys."""
-    if not LOCAL_TRUST_STORE_PATH.exists():
-        typer.echo("Trust store not found.")
-        return
-
-    keys_found = False
-    for source_dir in LOCAL_TRUST_STORE_PATH.iterdir():
-        if source_dir.is_dir():
-            keys = list(source_dir.glob("*.pub"))
-            if keys:
-                keys_found = True
-                typer.secho(f"\n--- Source: {source_dir.name} ---", bold=True)
-                for key_file in keys:
-                    typer.echo(f"  - {key_file.name}")
+    result = list_keys()
     
-    if not keys_found:
+    if not result["success"]:
+        typer.secho(f"Error: {result['error']}", fg=typer.colors.RED)
+        raise typer.Exit(code=1)
+    
+    if result["total_count"] == 0:
         typer.echo("No trusted keys found.")
+        return
+    
+    typer.echo(f"Found {result['total_count']} trusted keys:\n")
+    
+    for source_name, keys in result["keys"].items():
+        typer.secho(f"--- Source: {source_name} ---", bold=True)
+        for key_info in keys:
+            typer.echo(f"  - {key_info['name']}")
+            typer.echo(f"    Fingerprint: {key_info['fingerprint']}")
+            typer.echo(f"    Size: {key_info['size_bytes']} bytes")
+        typer.echo()  # Empty line between sources
