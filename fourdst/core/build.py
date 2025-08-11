@@ -110,23 +110,32 @@ def build_plugin_in_docker(sdist_path: Path, build_dir: Path, target: dict, plug
     from fourdst.core.platform import ABI_DETECTOR_CPP_SRC, ABI_DETECTOR_MESON_SRC
     build_script = f"""
     set -e
-    echo \"--- Installing build dependencies ---\"
-    export PATH=\"/opt/python/cp313-cp313/bin:$PATH\"
+    echo "--- Installing build dependencies ---"
+    export PATH="/opt/python/cp313-cp313/bin:$PATH"
     dnf install -y openssl-devel
     pip install meson ninja cmake
     
-    echo \"--- Configuring with Meson ---\"
+    echo "--- Configuring with Meson ---"
     meson setup /build/meson_build
-    echo \"--- Compiling with Meson ---\"
+    echo "--- Compiling with Meson ---"
     meson compile -C /build/meson_build
-    echo \"--- Running ABI detector ---\"
-    mkdir /tmp/abi && cd /tmp/abi
-    echo \"{ABI_DETECTOR_CPP_SRC.replace('"', '\\"')}\" > main.cpp
-    echo \"{ABI_DETECTOR_MESON_SRC.replace('"', '\\"')}\" > meson.build
+
+    echo "--- Running ABI detector ---"
+    mkdir -p /tmp/abi && cd /tmp/abi
+
+    cat > main.cpp << 'EOF'
+{ABI_DETECTOR_CPP_SRC}
+EOF
+
+    cat > meson.build << 'EOF'
+{ABI_DETECTOR_MESON_SRC}
+EOF
+
     meson setup build && meson compile -C build
     ./build/detector > /build/abi_details.txt
     """
-    
+
+
     container_build_dir = Path("/build")
     
     report_progress("  - Running build container...")
