@@ -113,9 +113,15 @@ function showView(viewId) {
     opatView.classList.toggle('hidden', viewId !== 'opat-view');
   }
   
+  // Handle documentation viewer separately
+  const docsViewer = document.getElementById('docs-viewer');
+  if (docsViewer) {
+    docsViewer.classList.toggle('hidden', viewId !== 'docs-viewer');
+  }
+  
   // Also hide all category home screens when showing main content
   const categoryHomeScreens = [
-    'libplugin-home', 'opat-home', 'libconstants-home', 'serif-home'
+    'libplugin-home', 'opat-home', 'libconstants-home', 'serif-home', 'docs-home'
   ];
   
   categoryHomeScreens.forEach(screenId => {

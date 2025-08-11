@@ -1,0 +1,38 @@
+{
+  "serif": {
+    "name": "SERiF",
+    "path": "docs/serif/html",
+    "desc": "Documentation for SERiF - Stellar Evolution in 4D",
+    "hostDocURL": "https://algebrist.ddns.net/~tboudreaux/docs/serif/html/",
+"githubURL": "https://github.com/4DSTAR/SERiF",
+    "version": "0.0.1a",
+    "category": "Modeling Tools"
+  },
+  "gridfire": {
+    "name": "GridFire",
+    "path": "docs/gridfire/html",
+    "desc": "Documentation for GridFire - General purpose nuclear network",
+    "hostDocURL": "https://4d-star.github.io/GridFire/html/index.html",
+    "githubURL": "https://github.com/4DSTAR/GridFire",
+    "version": "0.6.0",
+    "category": "Modeling Tools"
+  },
+  "libplugin": {
+    "name": "libplugin",
+    "path": "docs/libplugin/html",
+    "desc": "Documentation for libplugin - Plugin framework for 4DSTAR",
+    "hostDocURL": "https://tboudreaux.github.io/libplugin/html/",
+    "githubURL": "https://github.com/4DSTAR/libplugin",
+    "version": "0.3.4",
+    "category": "Core Libraries"
+  },
+  "libcomposition": {
+    "name": "libcomposition",
+    "path": "docs/libcomposition/html",
+    "desc": "Documentation for libcomposition - Composition library for 4DSTAR",
+    "hostDocURL": "https://4d-star.github.io/libcomposition/html/",
+    "githubURL": "https://github.com/4DSTAR/libcomposition",
+    "version": "1.5.2",
+    "category": "Core Libraries"
+  }
+}

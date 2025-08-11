@@ -42,6 +42,10 @@
                     <div class="category-icon" style="background-color: #ef4444;">SL</div>
                     <span class="category-label">SERiF Libraries</span>
                 </div>
+                <div class="category-item" data-category="docs" title="Documentation">
+                    <div class="category-icon" style="background-color: #06b6d4;">📚</div>
+                    <span class="category-label">Documentation</span>
+                </div>
             </nav>
             <div class="primary-sidebar-footer">
                 <div class="version-info">v1.0.0</div>
@@ -116,6 +120,28 @@
                 </div>
                 <div class="empty-state">
                     <p>SERiF tools coming soon...</p>
+                </div>
+            </div>
+
+            <!-- Documentation content -->
+            <div class="sidebar-content hidden" data-category="docs">
+                <div class="sidebar-header">
+                    <h3>Documentation</h3>
+                </div>
+                <div class="docs-search-container">
+                    <input type="text" id="docs-search" placeholder="Search documentation..." class="docs-search-input">
+                </div>
+                <div class="docs-categories">
+                    <div class="docs-category-filter">
+                        <select id="docs-category-filter" class="docs-category-select">
+                            <option value="">All Categories</option>
+                            <option value="Core Libraries">Core Libraries</option>
+                            <option value="Modeling Tools">Modeling Tools</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="docs-list" id="docs-list">
+                    <!-- Documentation items will be populated dynamically -->
                 </div>
             </div>
         </aside>
@@ -315,6 +341,69 @@
                     <div class="info-section">
                         <h3>About SERiF</h3>
                         <p>SERiF is a stellar structure and evolution program written in C++. This README will eventually provide guidance on how end users (i.e. non SERiF developers) can use the code. However, due to the early stage of development we are in, this README is currently intended only for developers. Its purpose is to provide an overview of the build system, development philosphy, development process, and current state of the code. Further, general information tasks which need doing will also be included (though for more detailed information on this please refer to the issue tracker or the 4DSSE project board)./p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Documentation Home Screen -->
+            <div id="docs-home" class="home-screen hidden">
+                <div class="category-hero">
+                    <div class="category-hero-content">
+                        <div class="category-icon-large" style="background-color: #06b6d4;">📚</div>
+                        <h1 class="category-title">Documentation Viewer</h1>
+                        <p class="category-subtitle">Browse and view Doxygen documentation for 4DSTAR libraries</p>
+                    </div>
+                </div>
+                
+                <div class="category-content">
+                    <div class="feature-section">
+                        <h2>Available Documentation</h2>
+                        <div id="docs-grid" class="docs-grid">
+                            <!-- Documentation cards will be populated dynamically -->
+                        </div>
+                    </div>
+                    
+                    <div class="info-section">
+                        <h3>About Documentation</h3>
+                        <p>This viewer provides access to Doxygen-generated documentation for various 4DSTAR libraries and tools. Click on any library below to view its documentation in an integrated viewer.</p>
+                        
+                        <div class="docs-features">
+                            <h4>Features:</h4>
+                            <ul>
+                                <li>Browse documentation for multiple libraries</li>
+                                <li>Integrated iframe viewer for seamless experience</li>
+                                <li>Quick access to GitHub repositories</li>
+                                <li>Search and filter by category</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Documentation Viewer -->
+            <div id="docs-viewer" class="hidden">
+                <header class="content-header">
+                    <h2 id="docs-viewer-title">Documentation Viewer</h2>
+                    <div class="action-buttons">
+                        <button id="docs-open-external-btn" class="action-btn" title="Open in external browser">
+                            <span>🔗</span> External
+                        </button>
+                        <button id="docs-github-btn" class="action-btn" title="View on GitHub">
+                            <span>📁</span> GitHub
+                        </button>
+                        <button id="docs-back-btn" class="action-btn">
+                            <span>←</span> Back
+                        </button>
+                    </div>
+                </header>
+
+                <div class="docs-viewer-content">
+                    <div class="docs-info-bar">
+                        <span id="docs-current-lib" class="docs-current-lib"></span>
+                        <span id="docs-current-version" class="docs-current-version"></span>
+                    </div>
+                    <div class="docs-iframe-container">
+                        <iframe id="docs-iframe" src="" frameborder="0" sandbox="allow-scripts allow-same-origin allow-popups allow-forms"></iframe>
                     </div>
                 </div>
             </div>

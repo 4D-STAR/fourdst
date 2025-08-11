@@ -17,6 +17,7 @@ const eventHandlers = require('./renderer/event-handlers');
 const opatHandler = require('./renderer/opat-handler');
 const fillWorkflow = require('./renderer/fill-workflow');
 const opatPlotting = require('./renderer/opat-plotting');
+const docsHandler = require('./renderer/docs-handler');
 
 // Initialize all modules with their dependencies
 function initializeModules() {
@@ -31,7 +32,8 @@ function initializeModules() {
     eventHandlers,
     opatHandler,
     fillWorkflow,
-    opatPlotting
+    opatPlotting,
+    docsHandler
   };
   
   // Initialize each module with its dependencies
@@ -43,6 +45,10 @@ function initializeModules() {
   opatHandler.initializeDependencies(deps);
   fillWorkflow.initializeDependencies(deps);
   opatPlotting.initializePlottingDependencies(deps);
+  
+  // Initialize documentation handler
+  const docsHandlerInstance = new docsHandler(domManager, stateManager);
+  docsHandlerInstance.initialize();
   
   console.log('[RENDERER] All modules initialized with dependencies');
 }

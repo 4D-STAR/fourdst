@@ -209,7 +209,8 @@ function updateWelcomeScreen(category) {
     'libplugin': 'Welcome to libplugin',
     'libconstants': 'Welcome to libconstants',
     'opat': 'Welcome to OPAT Core',
-    'serif': 'Welcome to SERiF Libraries'
+    'serif': 'Welcome to SERiF Libraries',
+    'docs': 'Welcome to Documentation'
   };
   
   const welcomeMessages = {
@@ -217,7 +218,8 @@ function updateWelcomeScreen(category) {
     'libplugin': 'Bundle management tools for 4DSTAR plugins.',
     'libconstants': 'Constants tools coming soon...',
     'opat': 'OPAT tools coming soon...',
-    'serif': 'SERiF tools coming soon...'
+    'serif': 'SERiF tools coming soon...',
+    'docs': 'Browse and view Doxygen documentation for 4DSTAR libraries.'
   };
   
   const welcomeTitle = document.querySelector('.welcome-title');
@@ -231,8 +233,8 @@ function updateWelcomeScreen(category) {
 function showCategoryHomeScreen(category) {
   const views = [
     'welcome-screen', 'libplugin-home', 'opat-home', 
-    'libconstants-home', 'serif-home', 'opat-view', 'libplugin-view',
-    'bundle-view', 'keys-view', 'create-bundle-form', 'plugin-view'
+    'libconstants-home', 'serif-home', 'docs-home', 'opat-view', 'libplugin-view',
+    'bundle-view', 'keys-view', 'create-bundle-form', 'plugin-view', 'docs-viewer'
   ];
   
   // Hide all views
@@ -248,6 +250,7 @@ function showCategoryHomeScreen(category) {
     'opat': 'opat-home',
     'libconstants': 'libconstants-home',
     'serif': 'serif-home',
+    'docs': 'docs-home',
     'keys': 'keys-view'
   };
   
