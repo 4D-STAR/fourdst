@@ -4,7 +4,7 @@
 const { ipcRenderer } = require('electron');
 
 // Import dependencies (these will be injected when integrated)
-let stateManager, domManager, bundleOperations, keyOperations, fillWorkflow, uiComponents, opatHandler;
+let stateManager, domManager, bundleOperations, keyOperations, pluginOperations, fillWorkflow, uiComponents, opatHandler;
 
 // --- EVENT LISTENERS SETUP ---
 function setupEventListeners() {
@@ -66,6 +66,9 @@ function setupEventListeners() {
     domManager.showModal('Not Implemented', 'The create bundle form will be moved to a modal dialog.');
   });
 
+  // Plugin management navigation is handled by plugin-operations.js
+  // No duplicate event listeners needed here
+
   // Tab navigation
   elements.tabLinks.forEach(link => {
     link.addEventListener('click', () => domManager.switchTab(link.dataset.tab));
@@ -88,6 +91,17 @@ function setupEventListeners() {
   
   // Key Management event listeners
   setupKeyManagementEventListeners();
+  
+  // Plugin Management event listeners
+  console.log('[EVENT_HANDLERS] Setting up plugin event listeners...');
+  console.log('[EVENT_HANDLERS] pluginOperations available:', !!pluginOperations);
+  console.log('[EVENT_HANDLERS] setupPluginEventListeners method available:', !!(pluginOperations && pluginOperations.setupPluginEventListeners));
+  
+  if (pluginOperations && pluginOperations.setupPluginEventListeners) {
+    pluginOperations.setupPluginEventListeners();
+  } else {
+    console.warn('[EVENT_HANDLERS] Plugin operations not available for event listener setup');
+  }
   
   // Signature warning modal event listeners
   elements.signatureWarningCancel.addEventListener('click', () => {
@@ -172,6 +186,14 @@ function setupCategoryNavigation() {
         
         // Show category home screen
         showCategoryHomeScreen(category);
+        
+        // Set up plugin button listeners when libplugin category is shown
+        if (category === 'libplugin' && pluginOperations) {
+          // Use setTimeout to ensure DOM is ready
+          setTimeout(() => {
+            pluginOperations.ensurePluginButtonListeners();
+          }, 100);
+        }
       }
       
       // Update welcome screen
@@ -210,7 +232,7 @@ function showCategoryHomeScreen(category) {
   const views = [
     'welcome-screen', 'libplugin-home', 'opat-home', 
     'libconstants-home', 'serif-home', 'opat-view', 'libplugin-view',
-    'bundle-view', 'keys-view', 'create-bundle-form'
+    'bundle-view', 'keys-view', 'create-bundle-form', 'plugin-view'
   ];
   
   // Hide all views
@@ -512,6 +534,7 @@ function initializeDependencies(deps) {
   domManager = deps.domManager;
   bundleOperations = deps.bundleOperations;
   keyOperations = deps.keyOperations;
+  pluginOperations = deps.pluginOperations;
   fillWorkflow = deps.fillWorkflow;
   uiComponents = deps.uiComponents;
   opatHandler = deps.opatHandler;

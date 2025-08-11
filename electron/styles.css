@@ -298,12 +298,94 @@ body.dark-mode .app-title {
   flex-shrink: 0;
   transition: all 0.2s ease;
   box-shadow: inset -1px 0 0 rgba(0, 0, 0, 0.05);
+  height: 100vh;
+  overflow-y: auto;
+  overflow-x: hidden;
+  scroll-behavior: smooth;
+}
+
+/* Custom scrollbar for secondary sidebar */
+.secondary-sidebar::-webkit-scrollbar {
+  width: 6px;
+}
+
+.secondary-sidebar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.secondary-sidebar::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.1);
+  border-radius: 3px;
+  transition: background 0.2s ease;
+}
+
+.secondary-sidebar::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 0, 0, 0.2);
+}
+
+/* Responsive sidebar content spacing */
+.sidebar-content {
+  padding: 1rem;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0; /* Allow content to shrink */
+}
+
+/* Responsive button spacing based on available height */
+@media (max-height: 700px) {
+  .sidebar-nav {
+    gap: 0.5rem;
+  }
+  
+  .nav-button {
+    padding: 0.5rem 0.75rem;
+    font-size: 0.875rem;
+  }
+  
+  .sidebar-header {
+    margin-top: 1rem !important;
+    margin-bottom: 0.5rem;
+  }
+  
+  .sidebar-header h3 {
+    font-size: 1rem;
+  }
+}
+
+@media (max-height: 600px) {
+  .sidebar-nav {
+    gap: 0.25rem;
+  }
+  
+  .nav-button {
+    padding: 0.375rem 0.5rem;
+    font-size: 0.8rem;
+  }
+  
+  .sidebar-header {
+    margin-top: 0.75rem !important;
+    margin-bottom: 0.25rem;
+  }
+  
+  .sidebar-header h3 {
+    font-size: 0.9rem;
+  }
 }
 
 body.dark-mode .secondary-sidebar {
   background-color: #374151;
   border-right: 1px solid #4b5563;
   box-shadow: inset -1px 0 0 rgba(255, 255, 255, 0.05);
+}
+
+/* Dark mode scrollbar */
+body.dark-mode .secondary-sidebar::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+body.dark-mode .secondary-sidebar::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.2);
 }
 
 /* Responsive secondary sidebar */
@@ -914,12 +996,113 @@ body.dark-mode .opat-table-container ::-webkit-scrollbar-thumb:hover {
   background: var(--background-color);
 }
 
-/* Individual Key Management Views */
+/* Main Content Area */
+.main-content {
+  flex: 1;
+  overflow-y: auto;
+  padding: 2rem;
+  background: var(--background-color);
+  max-height: calc(100vh - 60px); /* Fix scrolling by setting max height */
+}
+
+/* Individual Key Management Styles */
 .key-management-view {
   flex: 1;
   overflow-y: auto;
   padding: 2rem;
   background: var(--background-color);
+}
+
+/* Plugin Management Styles */
+.plugin-management-view {
+  flex: 1;
+  overflow-y: auto;
+  padding: 20px;
+  background: var(--background-color);
+  max-height: calc(100vh - 120px); /* Fix scrolling by setting max height */
+}
+
+
+
+/* File Input Group Styling */
+.file-input-group {
+  display: flex;
+  align-items: stretch;
+  gap: 0;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  overflow: hidden;
+  background: white;
+  transition: all 0.2s ease;
+}
+
+.file-input-group:focus-within {
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.file-input-group input {
+  flex: 1;
+  border: none !important;
+  border-radius: 0 !important;
+  margin: 0;
+  box-shadow: none !important;
+  background: transparent;
+}
+
+.file-input-group input:focus {
+  box-shadow: none !important;
+  border: none !important;
+}
+
+/* Modern Browse Button Styling */
+.browse-button {
+  background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+  color: white;
+  border: none;
+  padding: 0.75rem 1.25rem;
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border-radius: 0;
+  white-space: nowrap;
+  position: relative;
+  overflow: hidden;
+}
+
+.browse-button::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+  transition: left 0.5s ease;
+}
+
+.browse-button:hover {
+  background: linear-gradient(135deg, var(--secondary-color) 0%, #1d4ed8 100%);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+}
+
+.browse-button:hover::before {
+  left: 100%;
+}
+
+.browse-button:active {
+  transform: translateY(0);
+}
+
+/* Filename Display Styling */
+.filename-display {
+  color: var(--text-light);
+  font-size: 0.9rem;
+  font-style: italic;
+  margin-left: 0.5rem;
+  padding: 0.75rem 0;
 }
 
 /* Key Management Headers */
@@ -935,6 +1118,13 @@ body.dark-mode .opat-table-container ::-webkit-scrollbar-thumb:hover {
   align-items: flex-end;
   flex-wrap: wrap;
   gap: 1rem;
+}
+
+/* Plugin Management Headers */
+.plugin-header {
+  margin-bottom: 2rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid var(--border-color);
 }
 
 .keys-header .keys-actions {
@@ -965,7 +1155,8 @@ body.dark-mode .opat-table-container ::-webkit-scrollbar-thumb:hover {
 
 /* Form Styling */
 .generate-key-form,
-.add-key-form {
+.add-key-form,
+.plugin-form {
   background: white;
   border-radius: 12px;
   padding: 2rem;
@@ -1547,6 +1738,29 @@ body.dark-mode .info-banner {
 
 body.dark-mode .info-banner svg {
   color: #60a5fa;
+}
+
+/* Dark Mode Support for File Input Groups and Browse Buttons */
+body.dark-mode .file-input-group {
+  background: #1e293b;
+  border-color: #334155;
+}
+
+body.dark-mode .file-input-group input {
+  background: transparent;
+  color: #e2e8f0;
+}
+
+body.dark-mode .browse-button {
+  background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+}
+
+body.dark-mode .browse-button:hover {
+  background: linear-gradient(135deg, #1d4ed8 0%, #1e40af 100%);
+}
+
+body.dark-mode .filename-display {
+  color: #94a3b8;
 }
 
 /* Responsive Design */

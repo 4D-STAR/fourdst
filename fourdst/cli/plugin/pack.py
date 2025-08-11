@@ -1,52 +1,8 @@
 # fourdst/cli/plugin/pack.py
 import typer
-import sys
-import yaml
-import zipfile
 from pathlib import Path
 
-from fourdst.cli.common.utils import calculate_sha256
-
-def _validate_bundle_directory(directory: Path) -> list[str]:
-    """
-    Validates that a directory has the structure of a valid bundle.
-    Returns a list of error strings. An empty list means success.
-    """
-    errors = []
-    manifest_path = directory / "manifest.yaml"
-
-    if not manifest_path.is_file():
-        return ["Error: Missing 'manifest.yaml' in the root of the directory."]
-
-    try:
-        with open(manifest_path, 'r') as f:
-            manifest = yaml.safe_load(f)
-    except yaml.YAMLError as e:
-        return [f"Error: Invalid YAML in manifest.yaml: {e}"]
-
-    # 1. Check that all files referenced in the manifest exist
-    for plugin_name, plugin_data in manifest.get('bundlePlugins', {}).items():
-        sdist_info = plugin_data.get('sdist', {})
-        if sdist_info:
-            sdist_path = sdist_info.get('path')
-            if sdist_path and not (directory / sdist_path).is_file():
-                errors.append(f"Missing sdist file for '{plugin_name}': {sdist_path}")
-        
-        for binary in plugin_data.get('binaries', []):
-            binary_path = binary.get('path')
-            if binary_path and not (directory / binary_path).is_file():
-                errors.append(f"Missing binary file for '{plugin_name}': {binary_path}")
-            
-            # 2. If checksums exist, validate them
-            expected_checksum = binary.get('checksum')
-            if binary_path and expected_checksum:
-                file_to_check = directory / binary_path
-                if file_to_check.is_file():
-                    actual_checksum = "sha256:" + calculate_sha256(file_to_check)
-                    if actual_checksum != expected_checksum:
-                        errors.append(f"Checksum mismatch for '{binary_path}'")
-
-    return errors
+from fourdst.core.plugin import validate_bundle_directory, pack_bundle_directory
 
 
 def plugin_pack(
@@ -58,8 +14,13 @@ def plugin_pack(
     """
     typer.echo(f"--- Validating Bundle Directory: {folder_path.resolve()} ---")
     
-    validation_errors = _validate_bundle_directory(folder_path)
+    # Validate using core function
+    validation_result = validate_bundle_directory(folder_path)
+    if not validation_result['success']:
+        typer.secho(f"Error during validation: {validation_result['error']}", fg=typer.colors.RED)
+        raise typer.Exit(code=1)
     
+    validation_errors = validation_result['data']['errors']
     if validation_errors:
         typer.secho("Validation Failed. The following issues were found:", fg=typer.colors.RED, bold=True)
         for error in validation_errors:
@@ -70,31 +31,27 @@ def plugin_pack(
     typer.echo("\n--- Packing Bundle ---")
 
     output_name = name if name else folder_path.name
-    output_path = folder_path.parent / f"{output_name}.fbundle"
+    if folder_path.parent.exists():
+        typer.secho(f"Warning: Output file {folder_path.parent / f'{output_name}.fbundle'} will be created/overwritten.", fg=typer.colors.YELLOW)
 
-    if output_path.exists():
-        typer.secho(f"Warning: Output file {output_path} already exists and will be overwritten.", fg=typer.colors.YELLOW)
-
-    try:
-        with zipfile.ZipFile(output_path, 'w', zipfile.ZIP_DEFLATED) as bundle_zip:
-            for file_to_add in folder_path.rglob('*'):
-                if file_to_add.is_file():
-                    arcname = file_to_add.relative_to(folder_path)
-                    bundle_zip.write(file_to_add, arcname)
-                    typer.echo(f"  Adding: {arcname}")
-        
-        typer.secho(f"\n✅ Successfully created bundle: {output_path.resolve()}", fg=typer.colors.GREEN, bold=True)
-
-        # Final status report
-        with open(folder_path / "manifest.yaml", 'r') as f:
-            manifest = yaml.safe_load(f)
-        
-        is_signed = 'bundleAuthorKeyFingerprint' in manifest and (folder_path / "manifest.sig").exists()
-        if is_signed:
-            typer.secho("Bundle Status: ✅ SIGNED", fg=typer.colors.GREEN)
-        else:
-            typer.secho("Bundle Status: 🟡 UNSIGNED", fg=typer.colors.YELLOW)
-
-    except Exception as e:
-        typer.secho(f"An unexpected error occurred during packing: {e}", fg=typer.colors.RED)
+    # Pack using core function
+    output_config = {
+        'name': output_name,
+        'output_dir': folder_path.parent
+    }
+    
+    pack_result = pack_bundle_directory(folder_path, output_config)
+    if not pack_result['success']:
+        typer.secho(f"An unexpected error occurred during packing: {pack_result['error']}", fg=typer.colors.RED)
         raise typer.Exit(code=1)
+
+    # Display results
+    pack_data = pack_result['data']
+    typer.echo(f"  Added {pack_data['files_packed']} files to bundle")
+    typer.secho(f"\n✅ Successfully created bundle: {pack_data['output_path']}", fg=typer.colors.GREEN, bold=True)
+
+    # Final status report
+    if pack_data['is_signed']:
+        typer.secho("Bundle Status: ✅ SIGNED", fg=typer.colors.GREEN)
+    else:
+        typer.secho("Bundle Status: 🟡 UNSIGNED", fg=typer.colors.YELLOW)

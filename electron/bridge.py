@@ -34,7 +34,7 @@ class FourdstEncoder(json.JSONEncoder):
 project_root = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(project_root))
 
-from fourdst.core import bundle, keys
+from fourdst.core import bundle, keys, plugin
 
 def main():
     # Use stderr for all logging to avoid interfering with JSON output on stdout
@@ -74,9 +74,18 @@ def main():
             'sync_remotes', 'get_remote_sources', 'add_remote_source', 'remove_remote_source'
         ]
         
+        plugin_commands = [
+            'parse_cpp_interface', 'generate_plugin_project', 'validate_bundle_directory',
+            'pack_bundle_directory', 'extract_plugin_from_bundle', 'compare_plugin_sources',
+            'validate_plugin_project'
+        ]
+        
         if command in key_commands:
             func = getattr(keys, command)
             module_name = "keys"
+        elif command in plugin_commands:
+            func = getattr(plugin, command)
+            module_name = "plugin"
         else:
             func = getattr(bundle, command)
             module_name = "bundle"

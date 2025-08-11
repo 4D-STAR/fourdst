@@ -2,8 +2,9 @@
 // Extracted from renderer.js to centralize DOM element handling and view management
 
 // --- DOM ELEMENTS (will be initialized in initializeDOMElements) ---
-let welcomeScreen, bundleView, keysView, createBundleForm;
+let welcomeScreen, bundleView, keysView, createBundleForm, pluginView;
 let openBundleBtn, createBundleBtn;
+let pluginInitBtn, pluginValidateBtn, pluginPackBtn, pluginExtractBtn, pluginDiffBtn;
 let signBundleBtn, validateBundleBtn, clearBundleBtn, saveMetadataBtn;
 let saveOptionsModal, overwriteBundleBtn, saveAsNewBtn;
 let signatureWarningModal, signatureWarningCancel, signatureWarningContinue;
@@ -45,10 +46,17 @@ function initializeDOMElements() {
   bundleView = document.getElementById('bundle-view');
   keysView = document.getElementById('keys-view');
   createBundleForm = document.getElementById('create-bundle-form');
+  pluginView = document.getElementById('plugin-view');
 
   // Sidebar buttons
   openBundleBtn = document.getElementById('open-bundle-btn');
   createBundleBtn = document.getElementById('create-bundle-btn');
+  
+  // Plugin management buttons
+  initPluginBtn = document.getElementById('init-plugin-btn');
+  validatePluginBtn = document.getElementById('validate-plugin-btn');
+  extractPluginBtn = document.getElementById('extract-plugin-btn');
+  diffPluginBtn = document.getElementById('diff-plugin-btn');
 
   // Bundle action buttons
   signBundleBtn = document.getElementById('sign-bundle-btn');
@@ -90,9 +98,15 @@ function showView(viewId) {
   const opatView = document.getElementById('opat-view');
   
   // Hide main content views
-  [welcomeScreen, bundleView, keysView, createBundleForm].forEach(view => {
+  [welcomeScreen, bundleView, keysView, createBundleForm, pluginView].forEach(view => {
     view.classList.toggle('hidden', view.id !== viewId);
   });
+  
+  // When switching away from plugin view, hide all plugin management sub-views
+  if (viewId !== 'plugin-view') {
+    const pluginManagementViews = document.querySelectorAll('.plugin-management-view');
+    pluginManagementViews.forEach(view => view.classList.add('hidden'));
+  }
   
   // Handle OPAT view separately since it's not in the main views array
   if (opatView) {
@@ -117,6 +131,15 @@ function showView(viewId) {
     if (libpluginView) {
       libpluginView.classList.remove('hidden');
     }
+  } else if (viewId === 'plugin-view') {
+    // When switching to plugin view, show the default plugin sub-view (init view)
+    const pluginManagementViews = document.querySelectorAll('.plugin-management-view');
+    pluginManagementViews.forEach(view => view.classList.add('hidden'));
+    
+    const defaultPluginView = document.getElementById('plugin-init-view');
+    if (defaultPluginView) {
+      defaultPluginView.classList.remove('hidden');
+    }
   } else if (viewId === 'opat-view') {
     // Ensure OPAT view is visible and properly initialized
     if (opatView) {
@@ -135,6 +158,12 @@ function switchTab(tabId) {
   tabLinks.forEach(link => {
     link.classList.toggle('active', link.dataset.tab === tabId);
   });
+  
+  // When switching away from libplugin tab, hide all plugin management views
+  if (tabId !== 'libplugin') {
+    const pluginManagementViews = document.querySelectorAll('.plugin-management-view');
+    pluginManagementViews.forEach(view => view.classList.add('hidden'));
+  }
 }
 
 function showSpinner() {
@@ -174,8 +203,13 @@ module.exports = {
     bundleView,
     keysView,
     createBundleForm,
+    pluginView,
     openBundleBtn,
     createBundleBtn,
+    initPluginBtn,
+    validatePluginBtn,
+    extractPluginBtn,
+    diffPluginBtn,
     signBundleBtn,
     validateBundleBtn,
     clearBundleBtn,

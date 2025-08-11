@@ -9,6 +9,9 @@ const stateManager = require('./renderer/state-manager');
 const domManager = require('./renderer/dom-manager');
 const bundleOperations = require('./renderer/bundle-operations');
 const keyOperations = require('./renderer/key-operations');
+console.log('[RENDERER] Loading plugin operations module...');
+const pluginOperations = require('./renderer/plugin-operations');
+console.log('[RENDERER] Plugin operations module loaded:', !!pluginOperations);
 const uiComponents = require('./renderer/ui-components');
 const eventHandlers = require('./renderer/event-handlers');
 const opatHandler = require('./renderer/opat-handler');
@@ -23,6 +26,7 @@ function initializeModules() {
     domManager,
     bundleOperations,
     keyOperations,
+    pluginOperations,
     uiComponents,
     eventHandlers,
     opatHandler,
@@ -33,6 +37,7 @@ function initializeModules() {
   // Initialize each module with its dependencies
   bundleOperations.initializeDependencies(deps);
   keyOperations.initializeDependencies(deps);
+  pluginOperations.initializeDependencies(deps);
   uiComponents.initializeDependencies(deps);
   eventHandlers.initializeDependencies(deps);
   opatHandler.initializeDependencies(deps);
@@ -87,6 +92,7 @@ window.stateManager = stateManager;
 window.domManager = domManager;
 window.bundleOperations = bundleOperations;
 window.keyOperations = keyOperations;
+window.pluginOperations = pluginOperations;
 window.uiComponents = uiComponents;
 window.eventHandlers = eventHandlers;
 window.opatHandler = opatHandler;

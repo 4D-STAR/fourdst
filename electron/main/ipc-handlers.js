@@ -231,9 +231,92 @@ const setupBundleIPCHandlers = () => {
       return { success: false, error: error.message };
     }
   });
+
+
+};
+
+const setupPluginIPCHandlers = () => {
+  // Parse C++ interface handler
+  ipcMain.handle('parse-cpp-interface', async (event, { headerContent, fileName }) => {
+    try {
+      // Write header content to a temporary file since parse_cpp_interface expects a file path
+      const os = require('os');
+      const tempDir = os.tmpdir();
+      const tempFilePath = path.join(tempDir, fileName || 'temp_interface.h');
+      
+      await fs.writeFile(tempFilePath, headerContent);
+      
+      const kwargs = {
+        header_path: tempFilePath
+      };
+      
+      const result = await runPythonCommand('parse_cpp_interface', kwargs, event);
+      
+      // Clean up temporary file
+      try {
+        await fs.unlink(tempFilePath);
+      } catch (cleanupError) {
+        console.warn('[IPC_HANDLER] Failed to clean up temp file:', cleanupError);
+      }
+      
+      return result;
+    } catch (error) {
+      console.error('[IPC_HANDLER] Error in parse-cpp-interface:', error);
+      return { success: false, error: error.message };
+    }
+  });
+
+  // Generate plugin project handler
+  ipcMain.handle('generate-plugin-project', async (event, projectConfig) => {
+    // The function expects a single 'config' parameter containing all the configuration
+    // Note: directory and header_path need to be converted to Path objects in Python
+    const kwargs = {
+      config: {
+        project_name: projectConfig.project_name,
+        chosen_interface: projectConfig.chosen_interface,
+        interfaces: projectConfig.interfaces,
+        directory: projectConfig.output_directory, // Will be converted to Path in Python
+        version: projectConfig.version,
+        libplugin_rev: projectConfig.libplugin_revision,
+        header_path: projectConfig.header_path // Will be converted to Path in Python
+      }
+    };
+    return runPythonCommand('generate_plugin_project', kwargs, event);
+  });
+
+  // Validate plugin project handler
+  ipcMain.handle('validate-plugin-project', async (event, { plugin_directory }) => {
+    const kwargs = {
+      project_path: plugin_directory  // Function expects 'project_path', not 'plugin_directory'
+    };
+    return runPythonCommand('validate_plugin_project', kwargs, event);
+  });
+
+
+
+  // Extract plugin from bundle handler
+  ipcMain.handle('extract-plugin-from-bundle', async (event, { plugin_name, bundle_path, output_directory }) => {
+    const kwargs = {
+      plugin_name: plugin_name,
+      bundle_path: bundle_path,
+      output_directory: output_directory
+    };
+    return runPythonCommand('extract_plugin_from_bundle', kwargs, event);
+  });
+
+  // Compare plugin sources handler
+  ipcMain.handle('compare-plugin-sources', async (event, { plugin_name, bundle_a_path, bundle_b_path }) => {
+    const kwargs = {
+      plugin_name: plugin_name,
+      bundle_a_path: bundle_a_path,
+      bundle_b_path: bundle_b_path
+    };
+    return runPythonCommand('compare_plugin_sources', kwargs, event);
+  });
 };
 
 module.exports = {
   setupBundleIPCHandlers,
-  setupKeyIPCHandlers
+  setupKeyIPCHandlers,
+  setupPluginIPCHandlers
 };

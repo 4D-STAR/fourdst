@@ -107,6 +107,7 @@ py_installation.install_sources(
         meson.project_source_root() + '/fourdst/core/platform.py',
         meson.project_source_root() + '/fourdst/core/utils.py',
         meson.project_source_root() + '/fourdst/core/keys.py',
+        meson.project_source_root() + '/fourdst/core/plugin.py',
     ),
     subdir: 'fourdst/core'
 )

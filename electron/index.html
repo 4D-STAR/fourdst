@@ -63,6 +63,16 @@
                     <button id="open-bundle-btn" class="nav-button active">Open Bundle</button>
                     <button id="create-bundle-btn" class="nav-button">Create Bundle</button>
                 </nav>
+                
+                <div class="sidebar-header" style="margin-top: 30px;">
+                    <h3>Plugin Tools</h3>
+                </div>
+                <nav class="sidebar-nav">
+                    <button id="init-plugin-btn" class="nav-button">Initialize Plugin</button>
+                    <button id="validate-plugin-btn" class="nav-button">Validate Plugin</button>
+                    <button id="extract-plugin-btn" class="nav-button">Extract Plugin</button>
+                    <button id="diff-plugin-btn" class="nav-button">Compare Plugins</button>
+                </nav>
             </div>
 
             <!-- libconstants content (empty for now) -->
@@ -477,6 +487,150 @@
                             <div id="fill-progress-content"></div>
                         </div>
                     </div>
+                </div>
+            </div>
+
+            <!-- Plugin Management Views -->
+            <div id="plugin-view" class="hidden">
+                <!-- Plugin Initialize View -->
+                <div id="plugin-init-view" class="plugin-management-view">
+                    <div class="plugin-header">
+                        <h3>Initialize New Plugin</h3>
+                        <p>Create a new Meson-based C++ plugin project from an interface header.</p>
+                    </div>
+                    <div class="plugin-form">
+                        <div class="form-group">
+                            <label for="plugin-project-name">Project Name:</label>
+                            <input type="text" id="plugin-project-name" placeholder="my_plugin" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="plugin-header-file">Interface Header File:</label>
+                            <div class="file-input-group">
+                                <input type="file" id="plugin-header-file" accept=".h,.hpp" style="display: none;">
+                                <button id="plugin-header-browse-btn" class="browse-button">Browse...</button>
+                                <span id="plugin-header-filename" class="filename-display">No file selected</span>
+                            </div>
+                        </div>
+                        <div class="form-group" id="plugin-interface-selection" style="display: none;">
+                            <label for="plugin-interface-select">Select Interface to Implement:</label>
+                            <select id="plugin-interface-select" class="form-select">
+                                <option value="">-- Select an Interface --</option>
+                            </select>
+                            <div id="plugin-interface-methods" class="interface-methods-preview" style="display: none;">
+                                <h5>Methods to implement:</h5>
+                                <ul id="plugin-methods-list"></ul>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="plugin-directory">Output Directory:</label>
+                            <div class="file-input-group">
+                                <input type="text" id="plugin-directory" placeholder="." readonly>
+                                <button id="plugin-directory-browse-btn" class="browse-button">Browse...</button>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="plugin-version">Version:</label>
+                            <input type="text" id="plugin-version" placeholder="0.1.0" value="0.1.0">
+                        </div>
+                        <div class="form-group">
+                            <label for="plugin-libplugin-rev">libplugin Revision:</label>
+                            <input type="text" id="plugin-libplugin-rev" placeholder="main" value="main">
+                        </div>
+                        <div class="form-actions">
+                            <button id="plugin-init-execute-btn" class="action-button primary" disabled>Initialize Plugin</button>
+                        </div>
+                    </div>
+                    <div id="plugin-init-results" class="plugin-results hidden"></div>
+                </div>
+
+                <!-- Plugin Validate View -->
+                <div id="plugin-validate-view" class="plugin-management-view hidden">
+                    <div class="plugin-header">
+                        <h3>Validate Plugin Project</h3>
+                        <p>Check a plugin project's structure and meson.build file for correctness.</p>
+                    </div>
+                    <div class="plugin-form">
+                        <div class="form-group">
+                            <label for="validate-plugin-path">Plugin Directory:</label>
+                            <div class="file-input-group">
+                                <input type="text" id="validate-plugin-path" placeholder="." readonly>
+                                <button id="validate-plugin-browse-btn" class="browse-button">Browse...</button>
+                            </div>
+                        </div>
+                        <div class="form-actions">
+                            <button id="plugin-validate-execute-btn" class="action-button primary">Validate Plugin</button>
+                        </div>
+                    </div>
+                    <div id="plugin-validate-results" class="plugin-results hidden"></div>
+                </div>
+
+
+
+                <!-- Plugin Extract View -->
+                <div id="plugin-extract-view" class="plugin-management-view hidden">
+                    <div class="plugin-header">
+                        <h3>Extract Plugin from Bundle</h3>
+                        <p>Extract a plugin's source code from a bundle.</p>
+                    </div>
+                    <div class="plugin-form">
+                        <div class="form-group">
+                            <label for="extract-plugin-name">Plugin Name:</label>
+                            <input type="text" id="extract-plugin-name" placeholder="plugin_name" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="extract-bundle-file">Bundle File:</label>
+                            <div class="file-input-group">
+                                <input type="file" id="extract-bundle-file" accept=".fbundle" style="display: none;">
+                                <button id="extract-bundle-browse-btn" class="browse-button">Browse...</button>
+                                <span id="extract-bundle-filename" class="filename-display">No file selected</span>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="extract-output-dir">Output Directory:</label>
+                            <div class="file-input-group">
+                                <input type="text" id="extract-output-dir" placeholder="." readonly>
+                                <button id="extract-output-browse-btn" class="browse-button">Browse...</button>
+                            </div>
+                        </div>
+                        <div class="form-actions">
+                            <button id="plugin-extract-execute-btn" class="action-button primary" disabled>Extract Plugin</button>
+                        </div>
+                    </div>
+                    <div id="plugin-extract-results" class="plugin-results hidden"></div>
+                </div>
+
+                <!-- Plugin Diff View -->
+                <div id="plugin-diff-view" class="plugin-management-view hidden">
+                    <div class="plugin-header">
+                        <h3>Compare Plugin Sources</h3>
+                        <p>Compare the source code of a plugin between two different bundles.</p>
+                    </div>
+                    <div class="plugin-form">
+                        <div class="form-group">
+                            <label for="diff-plugin-name">Plugin Name:</label>
+                            <input type="text" id="diff-plugin-name" placeholder="plugin_name" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="diff-bundle-a">First Bundle:</label>
+                            <div class="file-input-group">
+                                <input type="file" id="diff-bundle-a" accept=".fbundle" style="display: none;">
+                                <button id="diff-bundle-a-browse-btn" class="browse-button">Browse...</button>
+                                <span id="diff-bundle-a-filename" class="filename-display">No file selected</span>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="diff-bundle-b">Second Bundle:</label>
+                            <div class="file-input-group">
+                                <input type="file" id="diff-bundle-b" accept=".fbundle" style="display: none;">
+                                <button id="diff-bundle-b-browse-btn" class="browse-button">Browse...</button>
+                                <span id="diff-bundle-b-filename" class="filename-display">No file selected</span>
+                            </div>
+                        </div>
+                        <div class="form-actions">
+                            <button id="plugin-diff-execute-btn" class="action-button primary" disabled>Compare Plugins</button>
+                        </div>
+                    </div>
+                    <div id="plugin-diff-results" class="plugin-results hidden"></div>
                 </div>
             </div>
 
