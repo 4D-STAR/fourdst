@@ -105,7 +105,7 @@ def create_bundle(
         if progress_callback:
             progress_callback(message)
         else:
-            print(message)
+            logging.info(message)
 
     staging_dir = Path(tempfile.mkdtemp(prefix="fourdst_create_"))
 
@@ -349,7 +349,7 @@ def sign_bundle(bundle_path: Path, private_key: Path, progress_callback: Optiona
         if progress_callback:
             progress_callback(message)
         else:
-            print(message)
+            logging.info(message)
 
     report_progress(f"Signing bundle: {bundle_path}")
     staging_dir = Path(tempfile.mkdtemp(prefix="fourdst_sign_"))
@@ -728,7 +728,7 @@ def clear_bundle(bundle_path: Path, progress_callback: Optional[Callable] = None
         if progress_callback:
             progress_callback(message)
         else:
-            print(message)
+            logging.info(message)
 
     report_progress(f"Clearing binaries from bundle: {bundle_path.name}")
     staging_dir = Path(tempfile.mkdtemp(prefix="fourdst_clear_"))

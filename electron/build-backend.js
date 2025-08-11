@@ -70,6 +70,19 @@ async function buildBackend() {
                 execSync(`chmod +x "${backendExecutable}"`);
                 console.log('✅ Backend executable permissions set');
             }
+            
+            // Validate backend dependencies
+            console.log('🔍 Validating backend dependencies...');
+            const { DependencyValidator } = require('./validate-dependencies.js');
+            const validator = new DependencyValidator();
+            
+            // Test backend execution to ensure all dependencies are embedded
+            const testResult = await validator.validatePythonBackend();
+            if (!testResult) {
+                throw new Error('Backend dependency validation failed. Check that all Python dependencies are properly bundled.');
+            }
+            console.log('✅ Backend dependency validation passed');
+            
         } else {
             throw new Error(`Backend executable not found at: ${backendExecutable}`);
         }

@@ -6,10 +6,13 @@
   "scripts": {
     "start": "electron .",
     "dev": "electron .",
-    "prebuild": "node build-backend.js",
+    "validate": "node validate-dependencies.js",
+    "prebuild": "node build-backend.js && node validate-dependencies.js",
     "build": "electron-builder",
-    "prepack": "node build-backend.js",
-    "pack": "electron-builder --dir"
+    "prepack": "node build-backend.js && node validate-dependencies.js",
+    "pack": "electron-builder --dir",
+    "postbuild": "node validate-dependencies.js",
+    "clean": "rm -rf dist build node_modules/.cache"
   },
   "repository": {
     "type": "git",
@@ -47,7 +50,13 @@
       "**/*",
       "node_modules/**/*",
       "!node_modules/electron/**/*",
-      "!node_modules/electron-builder/**/*"
+      "!node_modules/electron-builder/**/*",
+      "!node_modules/.cache/**/*",
+      "!**/*.map",
+      "!**/test/**/*",
+      "!**/tests/**/*",
+      "!**/*.test.js",
+      "!**/*.spec.js"
     ],
     "extraResources": [
       {
@@ -56,12 +65,26 @@
         "filter": ["**/*"]
       }
     ],
+    "asarUnpack": [
+      "node_modules/plotly.js-dist/**/*",
+      "resources/backend/**/*"
+    ],
     "mac": {
       "category": "public.app-category.developer-tools",
       "target": [
-        "dmg",
-        "zip"
-      ]
+        {
+          "target": "dmg",
+          "arch": ["x64", "arm64"]
+        },
+        {
+          "target": "zip", 
+          "arch": ["x64", "arm64"]
+        }
+      ],
+      "hardenedRuntime": true,
+      "gatekeeperAssess": false,
+      "entitlements": "entitlements.mac.plist",
+      "entitlementsInherit": "entitlements.mac.plist"
     },
     "linux": {
       "target": [
@@ -70,6 +93,10 @@
         "rpm"
       ],
       "category": "Development"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true
     }
   }
 }

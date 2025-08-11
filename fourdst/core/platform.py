@@ -95,8 +95,22 @@ executable('detector', 'main.cpp')
 def _detect_and_cache_abi() -> dict:
     """
     Compiles and runs a C++ program to detect the compiler ABI, then caches it.
+    Falls back to platform-based detection if meson is not available (e.g., in packaged apps).
     """
-    print("Performing one-time native C++ ABI detection...")
+    import sys
+    import logging
+    
+    # Use logging instead of print to avoid stdout contamination
+    logger = logging.getLogger(__name__)
+    logger.info("Performing one-time native C++ ABI detection...")
+    
+    # Check if meson is available
+    meson_available = shutil.which("meson") is not None
+    
+    if not meson_available:
+        logger.warning("Meson not available, using fallback platform detection")
+        return _fallback_platform_detection()
+    
     temp_dir = CACHE_PATH / "abi_detector"
     if temp_dir.exists():
         shutil.rmtree(temp_dir)
@@ -106,19 +120,20 @@ def _detect_and_cache_abi() -> dict:
         (temp_dir / "main.cpp").write_text(ABI_DETECTOR_CPP_SRC)
         (temp_dir / "meson.build").write_text(ABI_DETECTOR_MESON_SRC)
 
-        print("  - Configuring detector...")
+        logger.info("  - Configuring detector...")
         run_command(["meson", "setup", "build"], cwd=temp_dir)
-        print("  - Compiling detector...")
+        logger.info("  - Compiling detector...")
         run_command(["meson", "compile", "-C", "build"], cwd=temp_dir)
 
         detector_exe = temp_dir / "build" / "detector"
-        print("  - Running detector...")
+        logger.info("  - Running detector...")
         proc = subprocess.run([str(detector_exe)], check=True, capture_output=True, text=True)
         
         abi_details = {}
         for line in proc.stdout.strip().split('\n'):
-            key, value = line.split('=', 1)
-            abi_details[key] = value.strip()
+            if '=' in line:
+                key, value = line.split('=', 1)
+                abi_details[key] = value.strip()
 
         arch = platform.machine()
         stdlib_version = abi_details.get('stdlib_version', 'unknown')
@@ -138,12 +153,107 @@ def _detect_and_cache_abi() -> dict:
         with open(ABI_CACHE_FILE, 'w') as f:
             json.dump(platform_data, f, indent=4)
         
-        print(f"  - ABI details cached to {ABI_CACHE_FILE}")
+        logger.info(f"  - ABI details cached to {ABI_CACHE_FILE}")
         return platform_data
 
+    except Exception as e:
+        logger.warning(f"ABI detection failed: {e}, falling back to platform detection")
+        return _fallback_platform_detection()
     finally:
         if temp_dir.exists():
             shutil.rmtree(temp_dir)
+
+
+def _fallback_platform_detection() -> dict:
+    """
+    Fallback platform detection that doesn't require external tools.
+    Used when meson is not available (e.g., in packaged applications).
+    """
+    import sys
+    import logging
+    
+    logger = logging.getLogger(__name__)
+    logger.info("Using fallback platform detection (no external tools required)")
+    
+    # Get basic platform information
+    arch = platform.machine()
+    system = platform.system().lower()
+    
+    # Map common architectures
+    arch_mapping = {
+        'x86_64': 'x86_64',
+        'AMD64': 'x86_64',
+        'arm64': 'aarch64',
+        'aarch64': 'aarch64',
+        'i386': 'i686',
+        'i686': 'i686'
+    }
+    normalized_arch = arch_mapping.get(arch, arch)
+    
+    # Detect compiler and stdlib based on platform
+    if system == 'darwin':
+        # macOS
+        os_name = 'darwin'
+        compiler = 'clang'
+        stdlib = 'libc++'
+        # Get macOS version for stdlib version
+        mac_version = platform.mac_ver()[0]
+        stdlib_version = mac_version.split('.')[0] if mac_version else 'unknown'
+        abi = 'cxx11'
+    elif system == 'linux':
+        # Linux
+        os_name = 'linux'
+        # Try to detect if we're using GCC or Clang
+        compiler = 'gcc'  # Default assumption
+        stdlib = 'libstdc++'
+        stdlib_version = '11'  # Common default
+        abi = 'cxx11'
+    elif system == 'windows':
+        # Windows
+        os_name = 'windows'
+        compiler = 'msvc'
+        stdlib = 'msvcrt'
+        stdlib_version = 'unknown'
+        abi = 'cxx11'
+    else:
+        # Unknown system
+        os_name = system
+        compiler = 'unknown'
+        stdlib = 'unknown'
+        stdlib_version = 'unknown'
+        abi = 'unknown'
+    
+    abi_string = f"{compiler}-{stdlib}-{stdlib_version}-{abi}"
+    
+    platform_data = {
+        "os": os_name,
+        "arch": normalized_arch,
+        "triplet": f"{normalized_arch}-{os_name}",
+        "abi_signature": abi_string,
+        "details": {
+            "compiler": compiler,
+            "stdlib": stdlib,
+            "stdlib_version": stdlib_version,
+            "abi": abi,
+            "os": os_name,
+            "detection_method": "fallback"
+        },
+        "is_native": True,
+        "cross_file": None,
+        "docker_image": None
+    }
+    
+    # Cache the result
+    try:
+        CACHE_PATH.mkdir(parents=True, exist_ok=True)
+        with open(ABI_CACHE_FILE, 'w') as f:
+            json.dump(platform_data, f, indent=4)
+        logger.info(f"Fallback platform data cached to {ABI_CACHE_FILE}")
+    except Exception as e:
+        logger.warning(f"Failed to cache platform data: {e}")
+    
+    return platform_data
+
 
 def get_platform_identifier() -> dict:
     """

@@ -109,6 +109,13 @@ function runPythonCommand(command, kwargs, event) {
 
         process.on('close', (code) => {
             console.log(`[MAIN_PROCESS] Backend process exited with code ${code}`);
+            console.log(`[MAIN_PROCESS] Backend path used: ${backendPath}`);
+            console.log(`[MAIN_PROCESS] App packaged: ${app.isPackaged}`);
+            console.log(`[MAIN_PROCESS] Resources path: ${process.resourcesPath || 'N/A'}`);
+            console.log(`[MAIN_PROCESS] Raw stdout buffer length: ${stdoutBuffer.length}`);
+            console.log(`[MAIN_PROCESS] Raw stdout first 200 chars: "${stdoutBuffer.substring(0, 200)}"`);
+            console.log(`[MAIN_PROCESS] Error output: "${errorOutput}"`);
+            
             let resultData = null;
 
             try {
@@ -122,7 +129,11 @@ function runPythonCommand(command, kwargs, event) {
                 resultData = { 
                     success: false, 
                     error: `JSON parsing failed: ${e.message}`,
-                    raw_output: stdoutBuffer 
+                    raw_output: stdoutBuffer,
+                    backend_path: backendPath,
+                    is_packaged: app.isPackaged,
+                    exit_code: code,
+                    stderr_output: errorOutput
                 };
             }
 
