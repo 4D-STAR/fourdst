@@ -1,4 +1,4 @@
 [wrap-git]
 url = https://github.com/4D-STAR/libcomposition.git
-revision = v1.5.2
+revision = v1.6.0
 depth = 1
