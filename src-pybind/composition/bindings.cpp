@@ -24,7 +24,18 @@ std::string get_ostream_str(const fourdst::composition::Composition& comp) {
 }
 
 
-void register_comp_bindings(pybind11::module &comp_submodule) {
+void register_comp_bindings(const pybind11::module &comp_submodule) {
+     py::class_<fourdst::composition::CanonicalComposition>(comp_submodule, "CanonicalComposition")
+          .def_readonly("X", &fourdst::composition::CanonicalComposition::X)
+          .def_readonly("Y", &fourdst::composition::CanonicalComposition::Y)
+          .def_readonly("Z", &fourdst::composition::CanonicalComposition::Z)
+          .def("__repr__", // Add a string representation for easy printing in Python)
+               [](const fourdst::composition::CanonicalComposition &cc) {
+                   return "<CanonicalComposition(X=" + std::to_string(cc.X) +
+                          ", Y=" + std::to_string(cc.Y) +
+                          ", Z=" + std::to_string(cc.Z) + ")>";
+               });
+
     // --- Bindings for composition and species module ---
     py::class_<fourdst::composition::GlobalComposition>(comp_submodule, "GlobalComposition")
         .def_readonly("specificNumberDensity", &fourdst::composition::GlobalComposition::specificNumberDensity)
@@ -85,47 +96,93 @@ void register_comp_bindings(pybind11::module &comp_submodule) {
         .def("registerSymbol", py::overload_cast<const std::vector<std::string>&, bool>(&fourdst::composition::Composition::registerSymbol),
              py::arg("symbols"), py::arg("massFracMode") = true, "Register multiple symbols.")
 
+        .def("registerSpecies", py::overload_cast<const fourdst::atomic::Species&, bool>(&fourdst::composition::Composition::registerSpecies),
+             py::arg("species"), py::arg("massFracMode") = true, "Register a single species.")
+        .def("registerSpecies", py::overload_cast<const std::vector<fourdst::atomic::Species>&, bool>(&fourdst::composition::Composition::registerSpecies),
+             py::arg("species"), py::arg("massFracMode") = true, "Register multiple species.")
+
         .def("getRegisteredSymbols", &fourdst::composition::Composition::getRegisteredSymbols,
              "Get the set of registered symbols.")
+        .def("getRegisteredSpecies", &fourdst::composition::Composition::getRegisteredSpecies,
+             "Get the set of registered species.")
 
         .def("setMassFraction", py::overload_cast<const std::string&, const double&>(&fourdst::composition::Composition::setMassFraction),
              py::arg("symbol"), py::arg("mass_fraction"), "Set mass fraction for a single symbol (requires massFracMode). Returns old value.")
         .def("setMassFraction", py::overload_cast<const std::vector<std::string>&, const std::vector<double>&>(&fourdst::composition::Composition::setMassFraction),
              py::arg("symbols"), py::arg("mass_fractions"), "Set mass fractions for multiple symbols (requires massFracMode). Returns list of old values.")
+        .def("setMassFraction", py::overload_cast<const fourdst::atomic::Species&, const double&>(&fourdst::composition::Composition::setMassFraction),
+             py::arg("species"), py::arg("mass_fraction"), "Set mass fraction for a single species (requires massFracMode). Returns old value.")
+        .def("setMassFraction", py::overload_cast<const std::vector<fourdst::atomic::Species>&, const std::vector<double>&>(&fourdst::composition::Composition::setMassFraction),
+             py::arg("species"), py::arg("mass_fractions"), "Set mass fractions for multiple species (requires massFracMode). Returns list of old values.")
 
         .def("setNumberFraction", py::overload_cast<const std::string&, const double&>(&fourdst::composition::Composition::setNumberFraction),
              py::arg("symbol"), py::arg("number_fraction"), "Set number fraction for a single symbol (requires !massFracMode). Returns old value.")
         .def("setNumberFraction", py::overload_cast<const std::vector<std::string>&, const std::vector<double>&>(&fourdst::composition::Composition::setNumberFraction),
              py::arg("symbols"), py::arg("number_fractions"), "Set number fractions for multiple symbols (requires !massFracMode). Returns list of old values.")
+        .def("setNumberFraction", py::overload_cast<const fourdst::atomic::Species&, const double&>(&fourdst::composition::Composition::setNumberFraction),
+             py::arg("species"), py::arg("number_fraction"), "Set number fraction for a single species (requires !massFracMode). Returns old value.")
+        .def("setNumberFraction", py::overload_cast<const std::vector<fourdst::atomic::Species>&, const std::vector<double>&>(&fourdst::composition::Composition::setNumberFraction),
+             py::arg("species"), py::arg("number_fractions"), "Set number fractions for multiple species (requires !massFracMode). Returns list of old values.")
 
         .def("mix", &fourdst::composition::Composition::mix, py::arg("other"), py::arg("fraction"),
              "Mix with another composition. Returns new Composition.")
 
         .def("getMassFraction", py::overload_cast<const std::string&>(&fourdst::composition::Composition::getMassFraction, py::const_),
              py::arg("symbol"), "Get mass fraction for a symbol (calculates if needed). Requires finalization.")
+        .def("getMassFraction", py::overload_cast<const fourdst::atomic::Species&>(&fourdst::composition::Composition::getMassFraction, py::const_),
+             py::arg("species"), "Get mass fraction for a species (calculates if needed). Requires finalization.")
         .def("getMassFraction", py::overload_cast<>(&fourdst::composition::Composition::getMassFraction, py::const_),
              "Get dictionary of all mass fractions. Requires finalization.")
 
         .def("getNumberFraction", py::overload_cast<const std::string&>(&fourdst::composition::Composition::getNumberFraction, py::const_),
              py::arg("symbol"), "Get number fraction for a symbol (calculates if needed). Requires finalization.")
+        .def("getNumberFraction", py::overload_cast<const fourdst::atomic::Species&>(&fourdst::composition::Composition::getNumberFraction, py::const_),
+             py::arg("species"), "Get number fraction for a species (calculates if needed). Requires finalization.")
         .def("getNumberFraction", py::overload_cast<>(&fourdst::composition::Composition::getNumberFraction, py::const_),
              "Get dictionary of all number fractions. Requires finalization.")
 
-        // Note: pybind11 automatically converts std::pair to a Python tuple
+        .def("getMolarAbundance", py::overload_cast<const std::string&>(&fourdst::composition::Composition::getMolarAbundance, py::const_),
+             py::arg("symbol"), "Get molar abundance for a symbol (calculates if needed). Requires finalization.")
+        .def("getMolarAbundance", py::overload_cast<const fourdst::atomic::Species&>(&fourdst::composition::Composition::getMolarAbundance, py::const_),
+             py::arg("species"), "Get molar abundance for a species (calculates if needed). Requires finalization.")
+
         .def("getComposition", py::overload_cast<const std::string&>(&fourdst::composition::Composition::getComposition, py::const_),
              py::arg("symbol"), "Returns a tuple (CompositionEntry, GlobalComposition) for the symbol. Requires finalization.")
-        // Binding the version returning map<string, Entry> requires a bit more care or helper function
-        // to convert the map to a Python dict if needed directly. Let's bind the pair version for now.
-         .def("getComposition", py::overload_cast<>(&fourdst::composition::Composition::getComposition, py::const_),
-             "Returns a tuple (dict[str, CompositionEntry], GlobalComposition) for all symbols. Requires finalization.")
+        .def("getComposition", py::overload_cast<const fourdst::atomic::Species&>(&fourdst::composition::Composition::getComposition, py::const_),
+             py::arg("species"), "Returns a tuple (CompositionEntry, GlobalComposition) for the species. Requires finalization.")
+        .def("getComposition", py::overload_cast<>(&fourdst::composition::Composition::getComposition, py::const_),
+            "Returns a tuple (dict[str, CompositionEntry], GlobalComposition) for all symbols. Requires finalization.")
+
+        .def("getMeanParticleMass", &fourdst::composition::Composition::getMeanParticleMass,
+             "Get the mean particle mass (amu). Requires finalization.")
+        .def("getMeanAtomicNumber", &fourdst::composition::Composition::getMeanAtomicNumber,
+             "Get the mean atomic number <Z>. Requires finalization.")
 
 
         .def("subset", &fourdst::composition::Composition::subset, py::arg("symbols"), py::arg("method") = "norm",
              "Create a new Composition containing only the specified symbols.")
         .def("hasSymbol", &fourdst::composition::Composition::hasSymbol, py::arg("symbol"),
              "Check if a symbol is registered.")
+        .def("contains", &fourdst::composition::Composition::contains, py::arg("species"),
+             "Check if a species is registered.")
         .def("setCompositionMode", &fourdst::composition::Composition::setCompositionMode, py::arg("massFracMode"),
              "Set the mode (True=Mass, False=Number). Requires finalization before switching.")
+
+        .def("getMassFractionVector", &fourdst::composition::Composition::getMassFractionVector,
+              "Get mass fractions as a vector (ordered by species mass). Requires finalization.")
+        .def("getNumberFractionVector", &fourdst::composition::Composition::getNumberFractionVector,
+             "Get number fractions as a vector (ordered by species mass). Requires finalization.")
+        .def("getMolarAbundanceVector", &fourdst::composition::Composition::getMolarAbundanceVector,
+             "Get molar abundances as a vector (ordered by species mass). Requires finalization.")
+        .def("getSpeciesIndex", py::overload_cast<const std::string&>(&fourdst::composition::Composition::getSpeciesIndex, py::const_), py::arg("symbol"),
+             "Get the index of a species in the internal ordering. Requires finalization.")
+        .def("getSpeciesIndex", py::overload_cast<const fourdst::atomic::Species&>(&fourdst::composition::Composition::getSpeciesIndex, py::const_), py::arg("species"),
+             "Get the index of a species in the internal ordering. Requires finalization.")
+        .def("getSpeciesAtIndex", py::overload_cast<size_t>(&fourdst::composition::Composition::getSpeciesAtIndex, py::const_), py::arg("index"),
+             "Get the species at a given index in the internal ordering. Requires finalization.")
+
+        .def("getCanonicalComposition", &fourdst::composition::Composition::getCanonicalComposition, py::arg("harsh") = true,
+             "Get a canonical composition (X, Y, Z). Requires finalization.")
 
         // Operator overload
         .def(py::self + py::self, "Mix equally with another composition.") // Binds operator+
