@@ -1,6 +1,6 @@
 #include <pybind11/pybind11.h>
 #include <pybind11/stl.h> // Needed for vectors, maps, sets, strings
-#include <pybind11/stl_bind.h> // Needed for binding std::vector, std::map etc if needed directly
+#include <pybind11/stl_bind.h> // Needed for binding std::vector, std::map etc. if needed directly
 
 #include <string>
 
@@ -29,7 +29,7 @@ void register_comp_bindings(const pybind11::module &comp_submodule) {
           .def_readonly("X", &fourdst::composition::CanonicalComposition::X)
           .def_readonly("Y", &fourdst::composition::CanonicalComposition::Y)
           .def_readonly("Z", &fourdst::composition::CanonicalComposition::Z)
-          .def("__repr__", // Add a string representation for easy printing in Python)
+          .def("__repr__", // Add a string representation for easy printing in Python
                [](const fourdst::composition::CanonicalComposition &cc) {
                    return "<CanonicalComposition(X=" + std::to_string(cc.X) +
                           ", Y=" + std::to_string(cc.Y) +
@@ -51,10 +51,6 @@ void register_comp_bindings(const pybind11::module &comp_submodule) {
         .def("mass_fraction",
              py::overload_cast<>(&fourdst::composition::CompositionEntry::mass_fraction, py::const_),
              "Gets the mass fraction of the species.")
-        .def("mass_fraction",
-             py::overload_cast<double>(&fourdst::composition::CompositionEntry::mass_fraction, py::const_),
-             py::arg("meanMolarMass"), // Name the argument in Python
-             "Gets the mass fraction of the species given the mean molar mass.")
         .def("number_fraction",
               py::overload_cast<>(&fourdst::composition::CompositionEntry::number_fraction, py::const_),
               "Gets the number fraction of the species.")
@@ -194,7 +190,7 @@ void register_comp_bindings(const pybind11::module &comp_submodule) {
 
 }
 
-void register_species_bindings(pybind11::module &chem_submodule) {
+void register_species_bindings(const pybind11::module &chem_submodule) {
      // --- Bindings for species module ---
      py::class_<fourdst::atomic::Species>(chem_submodule, "Species")
          .def("mass", &fourdst::atomic::Species::mass, "Get atomic mass (amu)")
