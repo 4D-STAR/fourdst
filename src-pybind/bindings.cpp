@@ -6,7 +6,7 @@
 #include "composition/bindings.h"
 #include "config/bindings.h"
 
-PYBIND11_MODULE(fourdst, m) {
+PYBIND11_MODULE(_phys, m) {
     m.doc() = "Python bindings for the fourdst utility modules which are a part of the 4D-STAR project.";
 
     auto compMod  = m.def_submodule("composition", "Composition-module bindings");
