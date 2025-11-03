@@ -8,7 +8,7 @@ build-backend = "mesonpy"
 
 [project]
 name = "fourdst"  # Choose your Python package name
-version = "0.6.0" # Your project's version
+version = "0.8.5" # Your project's version
 description = "Python interface to the utility fourdst modules from the 4D-STAR project"
 readme = "readme.md"
 license = { file = "LICENSE.txt" } # Reference your license file [cite: 2]
