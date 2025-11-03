@@ -75,6 +75,7 @@ subprojects/liblogging/
 subprojects/eigen-*/
 !subprojects/pybind11.wrap
 subprojects/libplugin/
+subprojects/.wraplock
 
 *.csv
 *.dot
