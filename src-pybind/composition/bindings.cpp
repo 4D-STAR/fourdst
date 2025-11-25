@@ -10,6 +10,8 @@
 #include "bindings.h"
 
 #include "fourdst/atomic/species.h"
+#include "fourdst/composition/utils.h"
+#include "fourdst/composition/utils/composition_hash.h"
 
 namespace py = pybind11;
 
@@ -24,8 +26,8 @@ std::string get_ostream_str(const fourdst::composition::Composition& comp) {
 }
 
 
-void register_comp_bindings(const pybind11::module &comp_submodule) {
-     py::class_<fourdst::composition::CanonicalComposition>(comp_submodule, "CanonicalComposition")
+void register_comp_bindings(pybind11::module &m) {
+     py::class_<fourdst::composition::CanonicalComposition>(m, "CanonicalComposition")
           .def_readonly("X", &fourdst::composition::CanonicalComposition::X)
           .def_readonly("Y", &fourdst::composition::CanonicalComposition::Y)
           .def_readonly("Z", &fourdst::composition::CanonicalComposition::Z)
@@ -37,7 +39,7 @@ void register_comp_bindings(const pybind11::module &comp_submodule) {
                });
 
      // --- Binding for the main Composition class ---
-     py::class_<fourdst::composition::Composition>(comp_submodule, "Composition")
+     py::class_<fourdst::composition::Composition>(m, "Composition")
         // Constructors
      .def(
           py::init<>(),
@@ -47,9 +49,19 @@ void register_comp_bindings(const pybind11::module &comp_submodule) {
           py::arg("symbols"),
           "Constructor taking a list of symbols to register")
      .def(
+          py::init<const std::set<std::string>&>(),
+          py::arg("symbols"),
+          "Constructor taking a set of symbols to register"
+     )
+     .def(
           py::init<const std::vector<fourdst::atomic::Species>&>(),
           py::arg("species"),
           "Constructor taking a list of species to register")
+     .def(
+          py::init<const std::set<fourdst::atomic::Species>&>(),
+          py::arg("species"),
+          "Constructor taking a set of species to register"
+     )
      .def(
           py::init<const std::vector<std::string>&, const std::vector<double>&>(),
           py::arg("symbols"),
@@ -61,6 +73,32 @@ void register_comp_bindings(const pybind11::module &comp_submodule) {
           py::arg("species"),
           py::arg("molarAbundances"),
           "Constructor taking a list of species and molar abundances"
+     )
+     .def(
+          py::init<const std::set<std::string>&, const std::vector<double>&>(),
+          py::arg("symbols"),
+          py::arg("molarAbundances"),
+          "Constructor taking a set of symbols and a list of molar abundances"
+     )
+     .def(
+          py::init<const std::unordered_map<fourdst::atomic::Species, double>&>(),
+          py::arg("speciesMolarAbundances"),
+          "Constructor taking an unordered map of species to molar abundances"
+     )
+     .def (
+          py::init<const std::map<fourdst::atomic::Species, double>&>(),
+          py::arg("speciesMolarAbundances"),
+          "Constructor taking a map of species to molar abundances"
+     )
+     .def(
+          py::init<const std::unordered_map<std::string, double>&>(),
+          py::arg("speciesMolarAbundances"),
+          "Constructor taking an unordered map of species to molar abundances"
+     )
+     .def (
+          py::init<const std::map<std::string, double>&>(),
+          py::arg("speciesMolarAbundances"),
+          "Constructor taking a map of species to molar abundances"
      )
      .def(
           "registerSymbol",
@@ -215,31 +253,123 @@ void register_comp_bindings(const pybind11::module &comp_submodule) {
           [](const fourdst::composition::Composition& comp) {
                return py::make_iterator(comp.begin(), comp.end());
           },
-          py::keep_alive<0, 1>());
+          py::keep_alive<0, 1>())
+     .def(
+          "__eq__",
+          [](const fourdst::composition::Composition& self, const fourdst::composition::Composition& other) {
+               return self == other;
+          },
+          py::is_operator()
+     )
+     .def(
+          "__hash__",
+          [](const fourdst::composition::Composition& comp) {
+               return fourdst::composition::utils::CompositionHash::hash_exact<fourdst::composition::Composition>(comp);
+          }
+     );
+
+     // register new utils module
+     auto utils = m.def_submodule("utils", "Utility functions for Composition");
+     py::class_<fourdst::composition::utils::CompositionHash>(utils, "CompositionHash")
+          .def_static(
+               "hash_exact",
+               &fourdst::composition::utils::CompositionHash::hash_exact<fourdst::composition::Composition>,
+               py::arg("composition"),
+               "Compute a hash for a given Composition object."
+          )
+          .def_static(
+               "hash_quantized",
+               &fourdst::composition::utils::CompositionHash::hash_quantized<fourdst::composition::Composition>,
+               py::arg("composition"),
+               py::arg("eps"),
+               "Compute a quantized hash for a given Composition object with specified precision."
+          );
+
+     utils.def(
+          "buildCompositionFromMassFractions",
+          [](const std::vector<std::string>& symbols, const std::vector<double>& massFractions) {
+               return fourdst::composition::buildCompositionFromMassFractions(symbols, massFractions);
+          },
+          py::arg("symbols"),
+          py::arg("massFractions"),
+          "Build a Composition object from symbols and their corresponding mass fractions."
+     );
+
+     utils.def("buildCompositionFromMassFractions",
+          [](const std::vector<fourdst::atomic::Species>& species, const std::vector<double>& massFractions) {
+               return fourdst::composition::buildCompositionFromMassFractions(species, massFractions);
+          },
+          py::arg("species"),
+          py::arg("massFractions"),
+          "Build a Composition object from species and their corresponding mass fractions."
+     );
+
+     utils.def(
+          "buildCompositionFromMassFractions",
+          [](const std::set<fourdst::atomic::Species>& species, const std::vector<double>& massFractions) {
+               return fourdst::composition::buildCompositionFromMassFractions(species, massFractions);
+          },
+          py::arg("species"),
+          py::arg("massFractions"),
+          "Build a Composition object from species in a set and their corresponding mass fractions."
+     );
+
+     utils.def(
+          "buildCompositionFromMassFractions",
+          [](const std::unordered_map<fourdst::atomic::Species, double>& massFractionsMap) {
+               return fourdst::composition::buildCompositionFromMassFractions(massFractionsMap);
+          },
+          py::arg("massFractionsMap"),
+          "Build a Composition object from a map of species to mass fractions."
+     );
+
+     utils.def(
+          "buildCompositionFromMassFractions",
+          [](const std::map<fourdst::atomic::Species, double>& massFractionsMap) {
+               return fourdst::composition::buildCompositionFromMassFractions(massFractionsMap);
+          },
+          py::arg("massFractionsMap"),
+          "Build a Composition object from a map of species to mass fractions."
+     );
+
 
 }
 
 void register_species_bindings(const pybind11::module &chem_submodule) {
      // --- Bindings for species module ---
      py::class_<fourdst::atomic::Species>(chem_submodule, "Species")
-         .def("mass", &fourdst::atomic::Species::mass, "Get atomic mass (amu)")
-         .def("massUnc", &fourdst::atomic::Species::massUnc, "Get atomic mass uncertainty (amu)")
-         .def("bindingEnergy", &fourdst::atomic::Species::bindingEnergy, "Get binding energy (keV/nucleon?)") // Check units
-         .def("betaDecayEnergy", &fourdst::atomic::Species::betaDecayEnergy, "Get beta decay energy (keV?)") // Check units
-         .def("betaCode", [](const fourdst::atomic::Species& s){ return sv_to_string(s.betaCode()); }, "Get beta decay code") // Convert string_view
-         .def("name", [](const fourdst::atomic::Species& s){ return sv_to_string(s.name()); }, "Get species name (e.g., 'H-1')") // Convert string_view
-         .def("el", [](const fourdst::atomic::Species& s){ return sv_to_string(s.el()); }, "Get element symbol (e.g., 'H')") // Convert string_view
-         .def("nz", &fourdst::atomic::Species::nz, "Get NZ value")
-         .def("n", &fourdst::atomic::Species::n, "Get neutron number N")
-         .def("z", &fourdst::atomic::Species::z, "Get proton number Z")
-         .def("a", &fourdst::atomic::Species::a, "Get mass number A")
+          .def("mass", &fourdst::atomic::Species::mass, "Get atomic mass (amu)")
+          .def("massUnc", &fourdst::atomic::Species::massUnc, "Get atomic mass uncertainty (amu)")
+          .def("bindingEnergy", &fourdst::atomic::Species::bindingEnergy, "Get binding energy (keV/nucleon?)") // Check units
+          .def("betaDecayEnergy", &fourdst::atomic::Species::betaDecayEnergy, "Get beta decay energy (keV?)") // Check units
+          .def("betaCode", [](const fourdst::atomic::Species& s){ return sv_to_string(s.betaCode()); }, "Get beta decay code") // Convert string_view
+          .def("name", [](const fourdst::atomic::Species& s){ return sv_to_string(s.name()); }, "Get species name (e.g., 'H-1')") // Convert string_view
+          .def("el", [](const fourdst::atomic::Species& s){ return sv_to_string(s.el()); }, "Get element symbol (e.g., 'H')") // Convert string_view
+          .def("nz", &fourdst::atomic::Species::nz, "Get NZ value")
+          .def("n", &fourdst::atomic::Species::n, "Get neutron number N")
+          .def("z", &fourdst::atomic::Species::z, "Get proton number Z")
+          .def("a", &fourdst::atomic::Species::a, "Get mass number A")
+          .def("__repr__",
+               [](const fourdst::atomic::Species &s) {
+                    std::ostringstream oss;
+                    oss << s;
+                    return oss.str();
+               }
+          )
+          .def(
+               "__eq__",
+               [](const fourdst::atomic::Species& self, const fourdst::atomic::Species& other) {
+                    return self == other;
+               },
+               py::is_operator()
+          )
+          .def(
+               "__hash__",
+               [](const fourdst::atomic::Species& s) {
+                    return std::hash<fourdst::atomic::Species>()(s);
+               }
+          );
 
-     .def("__repr__",
-          [](const fourdst::atomic::Species &s) {
-              std::ostringstream oss;
-              oss << s;
-              return oss.str();
-          });
 
      chem_submodule.attr("species") = py::cast(fourdst::atomic::species); // Expose the species map
 }

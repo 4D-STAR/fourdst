@@ -21,8 +21,29 @@ py_mod = py_installation.extension_module(
 )
 
 py_installation.install_sources(
-    meson.project_source_root() + '/src-pybind/fourdst/__init__.py',
+    files(
+        meson.project_source_root() + '/src-pybind/fourdst/__init__.pyi',
+        meson.project_source_root() + '/src-pybind/fourdst/__init__.py',
+    ),
     subdir: 'fourdst',
+)
+
+py_installation.install_sources(
+    files(
+        meson.project_source_root() + '/src-pybind/fourdst/_phys/__init__.pyi',
+        meson.project_source_root() + '/src-pybind/fourdst/_phys/atomic.pyi',
+        meson.project_source_root() + '/src-pybind/fourdst/_phys/config.pyi',
+        meson.project_source_root() + '/src-pybind/fourdst/_phys/constants.pyi',
+    ),
+    subdir: 'fourdst/',
+)
+
+py_installation.install_sources(
+    files(
+        meson.project_source_root() + '/src-pybind/fourdst/_phys/composition/__init__.pyi',
+        meson.project_source_root() + '/src-pybind/fourdst/_phys/composition/utils.pyi',
+    ),
+    subdir: 'fourdst/composition',
 )
 
 py_installation.install_sources(
