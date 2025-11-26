@@ -6,4 +6,5 @@ from . import atomic
 from . import composition
 from . import config
 from . import constants
-__all__: list[str] = ['atomic', 'composition', 'config', 'constants']
+from . import exceptions
+__all__: list[str] = ['atomic', 'composition', 'config', 'constants', 'exceptions']

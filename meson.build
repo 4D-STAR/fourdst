@@ -1,4 +1,4 @@
-project('fourdst', 'cpp', version: 'v0.9.6', default_options: ['cpp_std=c++23'], meson_version: '>=1.5.0')
+project('fourdst', 'cpp', version: 'v0.9.7', default_options: ['cpp_std=c++23'], meson_version: '>=1.5.0')
 
 add_project_arguments('-fvisibility=default', language: 'cpp')
 

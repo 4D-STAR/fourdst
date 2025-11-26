@@ -34,6 +34,7 @@ py_installation.install_sources(
         meson.project_source_root() + '/src-pybind/fourdst/_phys/atomic.pyi',
         meson.project_source_root() + '/src-pybind/fourdst/_phys/config.pyi',
         meson.project_source_root() + '/src-pybind/fourdst/_phys/constants.pyi',
+        meson.project_source_root() + '/src-pybind/fourdst/_phys/exceptions.pyi',
     ),
     subdir: 'fourdst/',
 )

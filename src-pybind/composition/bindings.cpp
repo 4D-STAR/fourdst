@@ -12,6 +12,7 @@
 #include "fourdst/atomic/species.h"
 #include "fourdst/composition/utils.h"
 #include "fourdst/composition/utils/composition_hash.h"
+#include "fourdst/composition/exceptions/exceptions_composition.h"
 
 namespace py = pybind11;
 
@@ -335,7 +336,7 @@ void register_comp_bindings(pybind11::module &m) {
 
 }
 
-void register_species_bindings(const pybind11::module &chem_submodule) {
+void register_species_bindings(pybind11::module &chem_submodule) {
      // --- Bindings for species module ---
      py::class_<fourdst::atomic::Species>(chem_submodule, "Species")
           .def("mass", &fourdst::atomic::Species::mass, "Get atomic mass (amu)")
@@ -372,4 +373,35 @@ void register_species_bindings(const pybind11::module &chem_submodule) {
 
 
      chem_submodule.attr("species") = py::cast(fourdst::atomic::species); // Expose the species map
+
+     auto replace_dash_with_underscore = [](const std::string& str) {
+          std::string result = str;
+          std::ranges::replace(result, '-', '_');
+          return result;
+     };
+
+     for (const auto& [name, species] : fourdst::atomic::species) {
+          chem_submodule.attr(replace_dash_with_underscore(name).c_str()) = py::cast(species);
+     }
+
+     chem_submodule.def("az_to_species",
+          [](const int a, const int z) {
+               const auto result = fourdst::atomic::az_to_species(a, z);
+               if (!result) {
+                    throw fourdst::composition::exceptions::SpeciesError(std::format("Species with A={} and Z={} not found.", a, z));
+               }
+               return result.value();
+          },
+          py::arg("a"),
+          py::arg("z"),
+          "Get Species object from proton number (Z) and mass number (A)."
+     );
+}
+
+void register_comp_exceptions(pybind11::module &m) {
+     py::register_exception<fourdst::composition::exceptions::CompositionError>(m, "CompositionError");
+     py::register_exception<fourdst::composition::exceptions::InvalidCompositionError>(m, "InvalidCompositionError", m.attr("CompositionError"));
+     py::register_exception<fourdst::composition::exceptions::SpeciesError>(m, "SpeciesError");
+     py::register_exception<fourdst::composition::exceptions::UnknownSymbolError>(m, "UnknownSymbolError", m.attr("SpeciesError"));
+     py::register_exception<fourdst::composition::exceptions::UnregisteredSymbolError>(m, "UnregisteredSymbolError", m.attr("SpeciesError"));
 }

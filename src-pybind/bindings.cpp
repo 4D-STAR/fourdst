@@ -9,6 +9,9 @@
 PYBIND11_MODULE(_phys, m) {
     m.doc() = "Python bindings for the fourdst utility modules which are a part of the 4D-STAR project.";
 
+    auto exceptionMod = m.def_submodule("exceptions", "Exception bindings");
+    register_comp_exceptions(exceptionMod);
+
     auto atomicMod = m.def_submodule("atomic", "Species bindings");
     register_species_bindings(atomicMod);
 
