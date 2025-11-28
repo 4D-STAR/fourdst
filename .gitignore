@@ -75,7 +75,9 @@ subprojects/liblogging/
 subprojects/eigen-*/
 !subprojects/pybind11.wrap
 subprojects/libplugin/
+subprojects/minizip-ng-*
 subprojects/.wraplock
+subprojects/openssl-*
 
 *.csv
 *.dot
@@ -83,6 +85,8 @@ subprojects/.wraplock
 qhull.wrap
 quill.wrap
 yaml-cpp.wrap
+minizip-ng.wrap
+openssl.wrap
 
 .vscode/
 

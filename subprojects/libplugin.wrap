@@ -1,4 +1,4 @@
 [wrap-git]
 url = https://github.com/4D-STAR/libplugin.git
-revision = v0.3.4
+revision = v0.3.5
 depth = 1
