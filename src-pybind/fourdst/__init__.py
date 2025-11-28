@@ -11,4 +11,4 @@ sys.modules['fourdst.config'] = config
 
 __all__ = ['atomic', 'composition', 'constants', 'config', 'core', 'cli']
 
-__version__ = 'v0.9.6'
+__version__ = 'v0.9.11'
