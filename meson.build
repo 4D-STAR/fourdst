@@ -1,4 +1,4 @@
-project('fourdst', 'cpp', version: 'v0.9.8', default_options: ['cpp_std=c++23'], meson_version: '>=1.5.0')
+project('fourdst', 'cpp', version: 'v0.9.9', default_options: ['cpp_std=c++23'], meson_version: '>=1.5.0')
 
 add_project_arguments('-fvisibility=default', language: 'cpp')
 
@@ -12,8 +12,9 @@ endif
 subdir('build-config')
 
 # Configure python bindings
-subdir('build-python')
+if get_option('build-python')
+    subdir('build-python')
 
-# Build python bindings
-subdir('src-pybind')
+    subdir('src-pybind')
+endif
 
