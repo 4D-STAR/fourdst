@@ -21,6 +21,6 @@ PYBIND11_MODULE(_phys, m) {
     auto constMod = m.def_submodule("constants", "Constants-module bindings");
     register_const_bindings(constMod);
 
-    auto configMod = m.def_submodule("config", "Configuration-module bindings");
-    register_config_bindings(configMod);
+    const auto configMod = m.def_submodule("config", "Configuration-module bindings");
+    register_config_enums(configMod);
 }

@@ -78,6 +78,8 @@ subprojects/libplugin/
 subprojects/minizip-ng-*
 subprojects/.wraplock
 subprojects/openssl-*
+subprojects/glaze/
+subprojects/tomlplusplus-*/
 
 *.csv
 *.dot
@@ -87,6 +89,8 @@ quill.wrap
 yaml-cpp.wrap
 minizip-ng.wrap
 openssl.wrap
+glaze.wrap
+tomlplusplus.wrap
 
 .vscode/
 

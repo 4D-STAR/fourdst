@@ -1,8 +1,7 @@
-# --- Python Extension Setup ---
 py_installation = import('python').find_installation('python3', pure: false)
 
 py_mod = py_installation.extension_module(
-    '_phys', # Name of the generated .so/.pyd file (without extension)
+    '_phys',
     sources: [
         meson.project_source_root() + '/src-pybind/bindings.cpp',
         meson.project_source_root() + '/src-pybind/composition/bindings.cpp',
