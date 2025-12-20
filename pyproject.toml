@@ -34,3 +34,18 @@ dependencies = [
 [project.scripts]
 fourdst-cli = "fourdst.cli.main:app"
 
+[tool.meson-python.args]
+setup = [
+    '-Dpkg_config=false',
+    '-Dbuild_python=true',
+    '-Delectron_build_py_backend=false',
+    '-Dbuild_tests=false',
+    '-Dbuild_lib_all=false',
+    '-Dbuild_lib_comp=true',
+    '-Dbuild_lib_config=true',
+    '-Dbuild_lib_const=true',
+    '-Dbuild_lib_log=true',
+    '-Dbuild_lib_plugin=false'
+]
+
+

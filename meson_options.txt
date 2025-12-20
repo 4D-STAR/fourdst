@@ -2,7 +2,7 @@ option('pkg_config', type: 'boolean', value: false, description: 'generate pkg-c
 option('electron_build_py_backend', type: 'boolean', value: false, description: 'use pyinstaller to build the python backend for the electron app')
 option('build_tests', type: 'boolean', value: false, description: 'compile subproject tests')
 option('build_lib_all', type: 'boolean', value: true, description: 'build the full fourdst library with all features enabled')
-option('build_lib_comp', type: 'boolean', value: false, description: 'build the minimal fourdst library with only compression and decompression features enabled')
+option('build_lib_comp', type: 'boolean', value: false, description: 'build the fourdst libcomposition library')
 option('build_lib_config', type: 'boolean', value: false, description: 'build the fourdst library configuration tool only')
 option('build_lib_const', type: 'boolean', value: false, description: 'build the fourdst library constants only')
 option('build_python', type: 'boolean', value: true, description: 'build the python bindings so you can use fourdst from python. This will also build libcomposition, libconfig, and libconstants')

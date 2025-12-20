@@ -277,13 +277,6 @@ void register_comp_bindings(pybind11::module &m) {
                &fourdst::composition::utils::CompositionHash::hash_exact<fourdst::composition::Composition>,
                py::arg("composition"),
                "Compute a hash for a given Composition object."
-          )
-          .def_static(
-               "hash_quantized",
-               &fourdst::composition::utils::CompositionHash::hash_quantized<fourdst::composition::Composition>,
-               py::arg("composition"),
-               py::arg("eps"),
-               "Compute a quantized hash for a given Composition object with specified precision."
           );
 
      utils.def(
