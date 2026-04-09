@@ -80,6 +80,7 @@ subprojects/.wraplock
 subprojects/openssl-*
 subprojects/glaze/
 subprojects/tomlplusplus-*/
+subprojects/CLI11-*/
 
 *.csv
 *.dot
@@ -91,6 +92,7 @@ minizip-ng.wrap
 openssl.wrap
 glaze.wrap
 tomlplusplus.wrap
+cli11.wrap
 
 .vscode/
 
