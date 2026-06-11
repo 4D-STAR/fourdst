@@ -110,3 +110,5 @@ output/
 scratch/
 
 node_modules/
+
+*.whl
