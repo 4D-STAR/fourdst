@@ -3,6 +3,7 @@
 #include <pybind11/stl_bind.h> // Needed for binding std::vector, std::map etc. if needed directly
 
 #include <string>
+#include <ranges>
 
 #include "fourdst/composition/composition.h"
 #include "fourdst/atomic/atomicSpecies.h"
@@ -10,9 +11,10 @@
 #include "bindings.h"
 
 #include "fourdst/atomic/species.h"
-#include "fourdst/composition/utils.h"
+#include "fourdst/composition/utils/utils.h"
 #include "fourdst/composition/utils/composition_hash.h"
 #include "fourdst/composition/exceptions/exceptions_composition.h"
+#include "fourdst/composition/io/standard_compositions.h"
 
 namespace py = pybind11;
 
@@ -326,7 +328,127 @@ void register_comp_bindings(pybind11::module &m) {
           "Build a Composition object from a map of species to mass fractions."
      );
 
+     auto io = m.def_submodule("io", "IO library for standard solar compositions");
 
+     py::class_<fourdst::composition::io::CompositionData> (io, "CompositionData")
+     .def(py::init<>())
+     .def_readwrite("comment_str", &fourdst::composition::io::CompositionData::comment_str)
+     .def_readwrite("he_abundance", &fourdst::composition::io::CompositionData::he_abundance)
+     .def_readwrite("requires_atomic_weight", &fourdst::composition::io::CompositionData::requires_atomic_weight)
+     .def_property("elements",
+             [](fourdst::composition::io::CompositionData &self) -> const std::vector<std::string>& {
+                 return self.elements;
+             },
+             [](fourdst::composition::io::CompositionData &self, const std::vector<std::string> &value) {
+                 self.elements = value;
+             },
+             py::return_value_policy::reference_internal
+     )
+     .def_property("abundances",
+             [](fourdst::composition::io::CompositionData &self) -> const std::vector<double>& {
+                 return self.abundances;
+             },
+             [](fourdst::composition::io::CompositionData &self, const std::vector<double> &value) {
+                 self.abundances = value;
+             },
+             py::return_value_policy::reference_internal
+     );
+
+     py::class_<fourdst::composition::io::IsotopicPercentage>(io, "IsotopicPercentage")
+     .def(py::init<>())
+     .def_readwrite("comment_str", &fourdst::composition::io::IsotopicPercentage::comment_str)
+     .def_property("atomic_numbers",
+          [](fourdst::composition::io::IsotopicPercentage &self) -> const std::vector<int>& {
+               return self.atomic_numbers;
+          },
+          [](fourdst::composition::io::IsotopicPercentage &self, const std::vector<int> &value) {
+               self.atomic_numbers = value;
+          },
+          py::return_value_policy::reference_internal
+     )
+     .def_property("elements",
+          [](fourdst::composition::io::IsotopicPercentage &self) -> const std::vector<std::string>& {
+               return self.elements;
+          },
+          [](fourdst::composition::io::IsotopicPercentage &self, const std::vector<std::string> &value) {
+               self.elements = value;
+          },
+          py::return_value_policy::reference_internal
+     )
+     .def_property("mass_numbers",
+          [](fourdst::composition::io::IsotopicPercentage &self) -> const std::vector<int>& {
+               return self.mass_numbers;
+          },
+          [](fourdst::composition::io::IsotopicPercentage &self, const std::vector<int> &value) {
+               self.mass_numbers = value;
+          },
+          py::return_value_policy::reference_internal
+     )
+     .def_property("percentages",
+          [](fourdst::composition::io::IsotopicPercentage &self) -> const std::vector<double>& {
+               return self.percentages;
+          },
+          [](fourdst::composition::io::IsotopicPercentage &self, const std::vector<double> &value) {
+               self.percentages = value;
+          },
+          py::return_value_policy::reference_internal
+     );
+
+     py::enum_<fourdst::composition::io::SolarCompositions>(io,"SolarCompositions")
+     .value("AG89", fourdst::composition::io::SolarCompositions::AG89)
+     .value("GN93", fourdst::composition::io::SolarCompositions::GN93)
+     .value("GS98", fourdst::composition::io::SolarCompositions::GS98)
+     .value("L03", fourdst::composition::io::SolarCompositions::L03)
+     .value("AGS05", fourdst::composition::io::SolarCompositions::AGS05)
+     .value("AGSS09", fourdst::composition::io::SolarCompositions::AGSS09)
+     .value("A09_Przybilla", fourdst::composition::io::SolarCompositions::A09_Przybilla)
+     .value("MB22_photospheric", fourdst::composition::io::SolarCompositions::MB22_photospheric)
+     .value("AAG21_photospheric", fourdst::composition::io::SolarCompositions::AAG21_photospheric)
+     .value("L09", fourdst::composition::io::SolarCompositions::L09)
+     .export_values();
+
+     py::enum_<fourdst::composition::io::IsotopicPercentages>(io,"IsotopicPercentages")
+     .value("L03", fourdst::composition::io::IsotopicPercentages::L03)
+     .value("L09", fourdst::composition::io::IsotopicPercentages::L09);
+
+     io.attr("SolarCompositions_to_string_map") = fourdst::composition::io::SolarCompositions_to_string_map;
+     io.attr("IsotopicPercentages_to_string_map") = fourdst::composition::io::IsotopicPercentages_to_string_map;
+
+     io.def("get_raw_standard_solar_composition_data",
+          []() -> std::vector<unsigned char> {
+               std::span<const unsigned char> raw = fourdst::composition::io::get_raw_standard_solar_composition_data();
+               return std::ranges::to<std::vector<unsigned char>>(raw);
+          }
+     );
+
+     py::class_<fourdst::composition::io::ChemicalFileParser>(io,"ChemicalFileParser")
+     .def(py::init<>())
+     .def_static("parse_composition_data",
+          &fourdst::composition::io::ChemicalFileParser::parse_composition_data,
+          py::arg("data"),
+          py::arg("scheme")
+     )
+     .def_static("parse_isotopic_percentage",
+          &fourdst::composition::io::ChemicalFileParser::parse_isotopic_percentage,
+          py::arg("data"),
+          py::arg("scheme")
+     );
+
+     m.def("get_composition_record",
+          py::overload_cast<const std::string&, const std::string&, double, double>(&fourdst::composition::get_composition_record),
+          py::arg("metal_fraction_scheme"),
+          py::arg("isotopic_percentage_scheme"),
+          py::arg("initial_z"),
+          py::arg("initial_y")
+     );
+
+     m.def("get_composition_record",
+          py::overload_cast<fourdst::composition::io::SolarCompositions, fourdst::composition::io::IsotopicPercentages, double, double>(&fourdst::composition::get_composition_record),
+          py::arg("metal_fraction_scheme"),
+          py::arg("isotopic_percentage_scheme"),
+          py::arg("initial_z"),
+          py::arg("initial_y")
+     );
 }
 
 void register_species_bindings(pybind11::module &chem_submodule) {
