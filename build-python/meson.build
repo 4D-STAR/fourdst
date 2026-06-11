@@ -1,5 +1,10 @@
 py_installation = import('python').find_installation('python3', pure: false)
 
+if host_machine.system() == 'darwin'
+    fourdst_ext_rpath = '@loader_path/lib'
+else
+    fourdst_ext_rpath = '$ORIGIN/lib'
+endif
 py_mod = py_installation.extension_module(
     '_phys',
     sources: [
@@ -16,6 +21,8 @@ py_mod = py_installation.extension_module(
     ],
     cpp_args : ['-UNDEBUG'],
     install : true,
+    build_rpath: fourdst_ext_rpath,
+    install_rpath: fourdst_ext_rpath,
     subdir: 'fourdst',
 )
 

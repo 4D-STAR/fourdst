@@ -1,9 +1,5 @@
 [build-system]
-requires = [
-    "meson-python>=0.15.0", # Use a recent version
-    "meson>=1.6.0",        # Specify your Meson version requirement
-    "pybind11>=2.10"       # pybind11 headers needed at build time
-]
+requires = ["meson-python>=0.19,<0.20", "meson>=1.9.1,<1.10", "pybind11>=2.10"]
 build-backend = "mesonpy"
 
 [project]
@@ -33,6 +29,11 @@ dependencies = [
 
 [project.scripts]
 fourdst-cli = "fourdst.cli.main:app"
+fourdst-compiler-flags = "fourdst:get_compiler_flags_formatted"
+fourdst-include-dirs = "fourdst:get_include_dirs"
+fourdst-lib-dirs = "fourdst:get_lib_dirs"
+fourdst-rpath-flags = "fourdst:get_rpath_flags"
+fourdst-version = "fourdst:print_fourdst_version"
 
 [tool.meson-python.args]
 setup = [

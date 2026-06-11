@@ -2,7 +2,8 @@ composition_p = subproject('libcomposition',
   default_options: [
     'pkg_config=' + get_option('pkg_config').to_string(),
     'build_tests=' + get_option('build_tests').to_string(),
-    'build_examples=false'
+    'build_examples=false',
+    'build_python=' + get_option('build_python').to_string()
 ])
 comp_dep  = composition_p.get_variable('composition_dep')
 libcomposition = composition_p.get_variable('libcomposition')

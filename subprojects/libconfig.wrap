@@ -1,4 +1,4 @@
 [wrap-git]
 url = https://github.com/4D-STAR/libconfig.git
-revision = v2.2.6
+revision = v2.2.10
 depth = 1

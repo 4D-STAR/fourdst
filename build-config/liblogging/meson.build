@@ -1,7 +1,8 @@
 logging_p = subproject('liblogging', default_options: [
     'pkg_config=' + get_option('pkg_config').to_string(),
     'build_tests=' + get_option('build_tests').to_string(),
-    'build_examples=false'
+    'build_examples=false',
+    'build_python=' + get_option('build_python').to_string()
   ])
 liblogging = logging_p.get_variable('liblogging')
 
