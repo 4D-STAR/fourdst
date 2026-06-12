@@ -30,7 +30,7 @@ cd "${TMPDIR}/project"
 
 export MACOSX_DEPLOYMENT_TARGET=15.0
 
-PYTHON_VERSIONS=("3.9.23" "3.10.18" "3.11.13" "3.12.11" "3.13.5" "3.13.5t" "3.14.0rc1" "3.14.0rc1t" 'pypy3.10-7.3.19' "pypy3.11-7.3.20")
+PYTHON_VERSIONS=("3.9.23" "3.10.18" "3.11.13" "3.12.11" "3.13.5" "3.13.5t" "3.14.0rc1" "3.14.0rc1t" "3.14-dev" "3.14t-dev" )
 
 if ! command -v pyenv &> /dev/null; then
     echo "Error: pyenv not found. Please install it to manage Python versions."

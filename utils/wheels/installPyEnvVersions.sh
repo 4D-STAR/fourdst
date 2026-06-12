@@ -10,5 +10,7 @@ pyenv install -s 3.13.5
 pyenv install -s 3.13.5t
 pyenv install -s 3.14.0rc1
 pyenv install -s 3.14.0rc1t
-pyenv install -s pypy3.10-7.3.19
-pyenv install -s pypy3.11-7.3.20
+pyenv install -s 3.14-dev
+pyenv install -s 3.14t-dev
+pyenv install -s 3.15-dev
+pyenv install -s 3.15t-dev
