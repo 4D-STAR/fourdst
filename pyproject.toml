@@ -34,6 +34,7 @@ fourdst-include-dirs = "fourdst:get_include_dirs"
 fourdst-lib-dirs = "fourdst:get_lib_dirs"
 fourdst-rpath-flags = "fourdst:get_rpath_flags"
 fourdst-version = "fourdst:print_fourdst_version"
+fourdst-extra-flags = "fourdst:get_extra_flags"
 
 [tool.meson-python.args]
 setup = [

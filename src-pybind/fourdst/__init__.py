@@ -54,8 +54,12 @@ def get_include_flags() -> List[str]:
 def get_compiler_flags() -> List[str]:
     return get_include_flags() + get_lib_flags()
 
+def get_extra_flags() -> List[str]:
+    return ['-fPIC', '-std=c++23']
+
 def get_compiler_flags_formatted() -> int:
     flags = get_compiler_flags()
+    flags.extend(get_extra_flags())
     print(' '.join(flags))
     return 0
 
